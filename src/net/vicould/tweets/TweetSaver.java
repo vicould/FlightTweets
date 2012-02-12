@@ -1,6 +1,7 @@
 package net.vicould.tweets;
 
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
@@ -41,10 +42,15 @@ public class TweetSaver {
 	}
 	
 	/**
-	 * 
-	 * @param filename
+	 * Saves all the tweets to a CSV file.
+	 * @param filename The filename to save to, which will be placed in the results directory.
 	 */
 	public void saveTweetsToFile(String filename) {
+		File file = new File("results");
+		if (!file.exists()) {
+			file.mkdir();
+		}
+		
 		try {
 			Writer output = new BufferedWriter(new OutputStreamWriter(new FileOutputStream("results/" + filename), Charset.forName("UTF-8")));
 			
