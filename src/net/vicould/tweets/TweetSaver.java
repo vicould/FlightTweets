@@ -46,7 +46,7 @@ public class TweetSaver {
 	 */
 	public void saveTweetsToFile(String filename) {
 		try {
-			Writer output = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(filename), Charset.forName("UTF-8")));
+			Writer output = new BufferedWriter(new OutputStreamWriter(new FileOutputStream("results/" + filename), Charset.forName("UTF-8")));
 			
 			Connection connection = StorageManager.getInstance().getConnection();
 			PreparedStatement retrievalStatement = connection.prepareStatement("SELECT * FROM TWEETS ORDER BY TWEET_ID");

@@ -11,6 +11,9 @@ twitter4j.properties
 # DB files
 flightsdb.*
 
+# results
+results/
+
 *.pydevproject
 .project
 .metadata
