@@ -90,6 +90,9 @@ public class StorageManager {
 		}
 	}
 	
+	/**
+	 * Cleans the database.
+	 */
 	public void dropTables() {
 		try {
 			Connection localConnection = this.getConnection();

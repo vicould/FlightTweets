@@ -8,10 +8,8 @@
 # Properties
 twitter4j.properties
 
-# Tmp files for hsqldb
-flightsdb.tmp
-flightsdb.lck
-flightsdb.data
+# DB files
+flightsdb.*
 
 *.pydevproject
 .project
