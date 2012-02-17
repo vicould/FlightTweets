@@ -11,11 +11,14 @@ twitter4j.properties
 # DB files
 flightsdb.*
 
+# useful libs
+!lib/hsqldb.jar
+!lib/twitter4j-core-2.2.5.jar
+
 # results
 results/
 
 *.pydevproject
-.project
 .metadata
 bin/**
 tmp/**
@@ -25,8 +28,6 @@ tmp/**/*
 *.swp
 *~.nib
 local.properties
-.classpath
-.settings/
 .loadpath
 
 # External tool builders
