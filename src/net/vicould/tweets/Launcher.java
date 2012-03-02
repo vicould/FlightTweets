@@ -1,31 +1,37 @@
 package net.vicould.tweets;
 
-import java.util.GregorianCalendar;
+import java.io.BufferedReader;
+import java.io.DataInputStream;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+
 
 public class Launcher {
 
 	/**
 	 * @param args
+	 * @throws IOException 
 	 */
-	public static void main(String[] args) {
+	public static void main(String[] args) throws IOException {
 		// TODO Auto-generated method stub
+		try {
+			FileInputStream fstream = new FileInputStream("tweeterid.txt");
+			// Get the object of DataInputStream
+			DataInputStream in = new DataInputStream(fstream);
+			BufferedReader br = new BufferedReader(new InputStreamReader(in));
+			String strLine;
 
-//		TweetFetcher fetcher = new TweetFetcher();
-//		fetcher.fetchSome("delta", 108000000000000000L);
-		
-//		StorageManager manager = StorageManager.getInstance();
-//		manager.verifyDB();
-//
-//		TweetFetcher fetcher = new TweetFetcher();
-//		//		100 000 000 000 000 000
-//		fetcher.fetch("united", 108000000000000000L, 106000000000000000L);
-		
-//		TweetSaver saver = new TweetSaver();
-//		saver.saveTweetsToFile("test.txt");
-		
-		TweetAnalyzer analyzer = new TweetAnalyzer();
-		// these fuckers start their month at 0 ...
-		analyzer.searchForKeyword("irene", (new GregorianCalendar(2011, 7, 22)).getTime(), (new GregorianCalendar(2011, 8, 1)).getTime());
+			while ((strLine = br.readLine()) != null)   {
+				// Print the content on the console 
+				TweetFetcher fetcher = new TweetFetcher();
+				fetcher.fetchSome(strLine, 174110356057231361L);
+				fetcher.fetch(strLine, 174110356057231361L, 39564783707623425L);
+			}
+			//Close the input stream
+			in.close();
+		} catch (Exception e) {
+			System.err.println("Error: " + e.getMessage()); 
+		}
 	}
-
 }
