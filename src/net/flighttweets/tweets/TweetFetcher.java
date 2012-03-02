@@ -4,6 +4,7 @@ import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import twitter4j.Paging;
@@ -14,6 +15,9 @@ import twitter4j.TwitterFactory;
 
 public class TweetFetcher {
 
+	private final static long lowestTweetId = 174110356057231361L;
+	private final static long biggestTweetId = 39564783707623425L; 
+	
 	/**
 	 * Fetch some tweets for the specified user, that were sent before the id.
 	 * @param user The username of the user we want to explore the tweets.
@@ -31,7 +35,7 @@ public class TweetFetcher {
 			// Creates the output stream to write the results
 			fstream = new FileWriter("results.txt");
 			BufferedWriter output = new BufferedWriter(fstream);
-			String [] weather ={"joplin","missouri tornado","tuscaloosa","alabama tornado","hurricane","irene","october snowstorm","tornado","snowstorm"};
+			String [] weatherEventsKeywords ={"joplin","missouri tornado","tuscaloosa","alabama tornado","hurricane","irene","october snowstorm","tornado","snowstorm"};
 			try {
 				// paging is a structure allowing to specify the range of ids we want, allowing a fragmented query.
 				Paging paging = new Paging();
@@ -43,10 +47,10 @@ public class TweetFetcher {
 				for (Status status : statuses) {
 					// dumps to the console what we fetched
 					System.out.println(status.getCreatedAt() + " - " + status.getId() + " - " + status.getUser().getId()+" - " +status.getText());
-					int i=0;
-					for(i=0;i<weather.length;i++) {
-						if (status.getText().toLowerCase().indexOf(weather[i]) != -1) {
-							output.write(status.getText()+"\n\n");
+					int i;
+					for(i = 0; i < weatherEventsKeywords.length; i++) {
+						if (status.getText().toLowerCase().contains(weatherEventsKeywords[i].toLowerCase())) {
+							output.write(status.getCreatedAt() + " - " + status.getId() + " - " + status.getUser().getId()+" - " +status.getText() + "\n");
 						}
 					}
 				}
@@ -83,5 +87,4 @@ public class TweetFetcher {
 			}
 		} while (currentId > oldestTweetId);
 	}
-
 }
