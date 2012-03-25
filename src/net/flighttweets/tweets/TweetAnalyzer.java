@@ -1,4 +1,4 @@
-package net.vicould.tweets;
+package net.flighttweets.tweets;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import net.vicould.tweets.data.SimpleTweet;
+import net.flighttweets.tweets.data.SimpleTweet;
 
 public class TweetAnalyzer {
 

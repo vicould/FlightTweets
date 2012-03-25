@@ -1,4 +1,4 @@
-package net.vicould.tweets;
+package net.flighttweets.tweets;
 
 import java.util.GregorianCalendar;
 

@@ -1,4 +1,4 @@
-package net.vicould.tweets;
+package net.flighttweets.tweets;
 
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
@@ -10,7 +10,6 @@ import java.sql.SQLException;
  * Manager for the storage of the tweets. It implements the singleton pattern, 
  * get an instance of the class through the @see getInstance
  * The manager provides the connection to the tables, creating them as needed. 
- * @author Ludo
  *
  */
 public class StorageManager {

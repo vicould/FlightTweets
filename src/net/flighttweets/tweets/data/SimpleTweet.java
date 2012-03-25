@@ -1,4 +1,4 @@
-package net.vicould.tweets.data;
+package net.flighttweets.tweets.data;
 
 import java.util.Date;
 
@@ -6,8 +6,6 @@ import java.util.Date;
  * A simple tweet information holder, to use with what is stored in the database.
  * It does not follow the twitter4j.Status or twitter4j.Tweet interface, as less 
  * information is useful for us.
- * @author Ludo
- *
  */
 public class SimpleTweet {
 
