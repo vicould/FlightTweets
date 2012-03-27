@@ -1,31 +1,89 @@
 package net.flighttweets.tweets;
 
-import java.util.GregorianCalendar;
+import java.io.FileInputStream;
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
 
 public class Launcher {
+	public static final int ARGS_ERROR = 1;
+	public static final int FILE_FORMAT_ERROR = 2;
 
+	/**
+	 * Method to parse the input, in order to retrieve the usernames and the keywords. 
+	 * @param filename The name of the file containing the input.
+	 * @param usernames An empty array that we will fill with the usernames.
+	 * @param keywords An empty array that we will fill with the keywords.
+	 * @return True if we parsed everything correctly. False otherwise.
+	 */
+	public static boolean readInputFile(String filename, ArrayList<String> usernames, ArrayList<String> keywords) {
+		try {
+			BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(filename)));
+			
+			// first line is the usernames
+			String usernamesLine = reader.readLine();
+			if (usernamesLine != null) {
+				String usernamesContent[] = usernamesLine.split(":");
+				// the line should have the pattern "username: bab, ar" 
+				if (usernamesContent.length != 2) {
+					return false;
+				}
+				for (String username: usernamesContent[1].split(",")) {
+					usernames.add(username.trim());
+				}
+			} else {
+				return false;
+			}
+			
+			// second line contains the keywords
+			String keywordsLine = reader.readLine();
+			if (keywordsLine != null) {
+				String keywordsContent[] = keywordsLine.split(":");
+				// the line should have the pattern "keyword: bab, ar"
+				if (keywordsContent.length != 2) {
+					return false;
+				}
+				for (String keyword: keywordsContent[1].split(",")) {
+					keywords.add(keyword.trim());
+				}
+			} else {
+				return false;
+			}
+			
+			return true;
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		return false;
+	}
+	
 	/**
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		// TODO Auto-generated method stub
-
-//		TweetFetcher fetcher = new TweetFetcher();
-//		fetcher.fetchSome("delta", 108000000000000000L);
+		if (args.length != 1) {
+			System.out.println("Please provide as argument the filename of the input file\n" +
+							   "containing the lines usernames: user, name and \n" +
+							   "keywords: key, words\n");
+			System.exit(ARGS_ERROR);
+		}
 		
-//		StorageManager manager = StorageManager.getInstance();
-//		manager.verifyDB();
-//
-//		TweetFetcher fetcher = new TweetFetcher();
-//		//		100 000 000 000 000 000
-//		fetcher.fetch("united", 108000000000000000L, 106000000000000000L);
+		ArrayList<String> usernames = new ArrayList<String>();
+		ArrayList<String> keywords = new ArrayList<String>();
 		
-//		TweetSaver saver = new TweetSaver();
-//		saver.saveTweetsToFile("test.txt");
+		boolean success = readInputFile(args[0], usernames, keywords);
 		
-		TweetAnalyzer analyzer = new TweetAnalyzer();
-		// these fuckers start their month at 0 ...
-		analyzer.searchForKeyword("irene", (new GregorianCalendar(2011, 7, 22)).getTime(), (new GregorianCalendar(2011, 8, 1)).getTime());
+		if (!success) {
+			System.out.println("There was an issue with the input file, please check the format.");
+			System.exit(FILE_FORMAT_ERROR);
+		}
 	}
 
 }
