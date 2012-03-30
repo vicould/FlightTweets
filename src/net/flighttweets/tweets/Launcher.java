@@ -82,8 +82,14 @@ public class Launcher {
 		
 		if (!success) {
 			System.out.println("There was an issue with the input file, please check the format.");
+			System.out.println("Please provide as argument the filename of the input file\n" +
+					   "containing the lines usernames: user, name and \n" +
+					   "keywords: key, words\n");
 			System.exit(FILE_FORMAT_ERROR);
 		}
+		
+		TweetFetcher fetcher = new TweetFetcher(usernames);
+		fetcher.resumeTweetFetching();
 	}
 
 }
