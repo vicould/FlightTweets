@@ -1,6 +1,6 @@
 package net.flighttweets.tweets.data;
 
-public class FetchItemBundle {
+public class FetchItemBundle implements Comparable<FetchItemBundle> {
 
 	private String username;
 	private long tweetId;
@@ -26,7 +26,7 @@ public class FetchItemBundle {
 		this.tweetId = tweetId;
 	}
 	
-	public int compare(FetchItemBundle object) {
+	public int compareTo(FetchItemBundle object) {
 		return this.getUsername().compareTo(object.getUsername());
 	}
 	

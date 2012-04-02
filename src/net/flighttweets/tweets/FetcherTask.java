@@ -1,6 +1,7 @@
 package net.flighttweets.tweets;
 
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.DateFormat;
 import java.util.ArrayList;
@@ -23,6 +24,7 @@ public class FetcherTask extends TimerTask {
 	private TweetSaver tweetSaver;
 	private StorageManager storageManager;
 	private FetcherCallback callback;
+	private int retrialCount;
 	
 	public FetcherTask(PriorityQueue<FetchItemBundle> itemsToFetch, FetcherCallback callback) {
 		super();
@@ -31,6 +33,7 @@ public class FetcherTask extends TimerTask {
 		this.setTweetSaver(new TweetSaver());
 		this.setStorageManager(StorageManager.getInstance());
 		this.setCallback(callback);
+		this.setRetrialCount(0);
 		
 		FetchItemBundle firstItem = this.getUsernamesToFetch().poll();
 		if (firstItem != null) {
@@ -87,6 +90,18 @@ public class FetcherTask extends TimerTask {
 		this.callback = callback;
 	}
 
+	private int getRetrialCount() {
+		return retrialCount;
+	}
+
+	private void setRetrialCount(int retrialCount) {
+		this.retrialCount = retrialCount;
+	}
+	
+	private void retrialCountPlusOne() {
+		this.retrialCount++;
+	}
+
 	private List<Status> fetchUserTweets() throws TwitterException {
 		if (this.getCurrentUser() != null || this.getCurrentId() != null) {
 			Twitter twitter = new TwitterFactory().getInstance();
@@ -108,29 +123,35 @@ public class FetcherTask extends TimerTask {
 		saver.saveTweets(statuses);
 	}
 	
+	public void prepareNextRound() {
+		// updates the currentUser and currentId for next run, takes it from the head of the queue
+		FetchItemBundle nextRound = this.getUsernamesToFetch().poll();
+		if (nextRound != null) {
+			this.setCurrentId(nextRound.getTweetId());
+			this.setCurrentUser(nextRound.getUsername());
+		} else {
+			this.getCallback().fetchComplete();
+		}
+	}
+	
 	private void updateFetchingStatus(Status lastFetchedStatus) throws SQLException {
 		// checks the date, to see if it is less than January 1st, 2011
 		if (lastFetchedStatus.getCreatedAt().compareTo(new GregorianCalendar(2011, 0, 1).getTime()) <= 0) {
 			// updates the db
-			PreparedStatement deleteStatement = this.getStorageManager().getConnection().prepareStatement("UPDATE FETCH_STATUS SET (COMPLETE) = (TRUE) WHERE USERNAME = ?");
-			deleteStatement.setString(1, lastFetchedStatus.getUser().getName());
-			deleteStatement.execute();
-			
-			// updates the currentUser and currentId for next run, takes it from the head of the queue
-			FetchItemBundle nextRound = this.getUsernamesToFetch().poll();
-			if (nextRound != null) {
-				this.setCurrentId(nextRound.getTweetId());
-				this.setCurrentUser(nextRound.getUsername());
-			} else {
-				this.getCallback().fetchComplete();
-			}
-			
+			PreparedStatement updateStatement = this.getStorageManager().getConnection().prepareStatement("UPDATE FETCH_STATUS SET (LAST_TWEET_ID, LAST_TWEET_DATE, COMPLETE) = (?, ?, TRUE) WHERE USERNAME = ?");
+			updateStatement.setLong(1, lastFetchedStatus.getId());
+			updateStatement.setDate(2, new java.sql.Date(lastFetchedStatus.getCreatedAt().getTime()));
+			updateStatement.setString(3, lastFetchedStatus.getUser().getScreenName());
+
+			updateStatement.execute();
+
+			this.prepareNextRound();
 		} else {
 			// updates the db
 			PreparedStatement updateStatement = this.getStorageManager().getConnection().prepareStatement("UPDATE FETCH_STATUS SET (LAST_TWEET_ID, LAST_TWEET_DATE) = (?, ?) WHERE USERNAME = ?");
 			updateStatement.setLong(1, lastFetchedStatus.getId());
 			updateStatement.setDate(2, new java.sql.Date(lastFetchedStatus.getCreatedAt().getTime()));
-			updateStatement.setString(3, lastFetchedStatus.getUser().getName());
+			updateStatement.setString(3, lastFetchedStatus.getUser().getScreenName());
 			
 			updateStatement.execute();
 			
@@ -139,15 +160,46 @@ public class FetcherTask extends TimerTask {
 		}
 	}
 	
+	public void enough(String username) throws SQLException {
+		PreparedStatement completeStatement = this.getStorageManager().getConnection().prepareStatement("UPDATE FETCH_STATUS SET (COMPLETE) = (TRUE) WHERE USERNAME = ?");
+		completeStatement.setString(1, username);
+		completeStatement.execute();
+		
+		this.prepareNextRound();
+	}
+	
 	@Override
 	public void run() {
 		try {
-			System.out.println("Fetching a new batch for " + this.getCurrentUser() + "before " + this.getCurrentId());
+			System.out.println("Fetching a new batch for " + this.getCurrentUser() + " before " + this.getCurrentId());
 			List<Status> statuses = this.fetchUserTweets();
 			if (statuses.size() != 0) {
 				System.out.println("Saving " + statuses.size() + " results, last one being " + DateFormat.getDateInstance(DateFormat.MEDIUM).format(statuses.get(statuses.size() - 1).getCreatedAt()));
 				this.saveTweets(statuses);
 				updateFetchingStatus(statuses.get(statuses.size() - 1));
+			} else {
+				// counts the tweets in the db
+				PreparedStatement countStatement = this.getStorageManager().getConnection().prepareStatement("SELECT COUNT(TWEET_ID) FROM TWEETS WHERE USERNAME = ?");
+				countStatement.setString(1, this.getCurrentUser());
+				ResultSet countResult = countStatement.executeQuery();
+				if (countResult.next()) {
+					// if it is over 3200, Twitter does not allow us to get more tweets
+					// so we have to consider the fetch is complete
+					if (countResult.getInt(1) >= 3200) {
+						System.out.println("Enough for " + this.getCurrentUser());
+						// updates the db
+						this.enough(this.getCurrentUser());
+					} else {
+						System.out.println("Twitter returned an empty response, but I don't know why.");
+						// try 5 times, otherwise we get bored
+						this.retrialCountPlusOne();
+						if (this.getRetrialCount() == 5) {
+							// enough!
+							System.out.println("5 times is enough for " + this.getCurrentUser());
+							this.enough(this.getCurrentUser());
+						}
+					}
+				}
 			}
 		} catch (TwitterException e) {
 			this.getUsernamesToFetch().add(new FetchItemBundle(this.getCurrentUser(), this.getCurrentId()));

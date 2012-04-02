@@ -28,7 +28,7 @@ public class TweetSaver {
 			
 			for (Status status : statusesToSave) {
 				insertStatement.setLong(1, status.getId());
-				insertStatement.setString(2, status.getUser().getName());
+				insertStatement.setString(2, status.getUser().getScreenName());
 				insertStatement.setLong(3, status.getUser().getId());
 				insertStatement.setString(4, status.getText());
 				// conversion between a java.util.Date and a java.sql.Date

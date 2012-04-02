@@ -85,8 +85,12 @@ public class TweetFetcher implements FetcherCallback {
 					toDo.add(new FetchItemBundle(username, status.getLong("LAST_TWEET_ID")));
 				}
 			}
-			System.out.println("Launching fetch task");
-			this.launchFetcherTasks(toDo);
+			if (toDo.size() != 0) {
+				System.out.println("Launching fetch task");
+				this.launchFetcherTasks(toDo);
+			} else {
+				System.out.println("Nothing to do, all the tweets have been fetched");
+			}
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -97,7 +101,7 @@ public class TweetFetcher implements FetcherCallback {
 		Timer timer = new Timer();
 		this.setTimer(timer);
 		FetcherTask task = new FetcherTask(items, this);
-		timer.schedule(task, 0, 2000);
+		timer.schedule(task, 0, 5000);
 	}
 
 	@Override
@@ -111,8 +115,9 @@ public class TweetFetcher implements FetcherCallback {
 	@Override
 	public void handleFetchFailure(PriorityQueue<FetchItemBundle> currentPoint) {
 		this.getTimer().cancel();
+		this.setTimer(new Timer());
 		FetcherTask task = new FetcherTask(currentPoint, this);
-		this.getTimer().schedule(task, 5000, 2000);
+		this.getTimer().schedule(task, 30000, 5000);
 	}
 
 }
