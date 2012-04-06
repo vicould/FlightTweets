@@ -88,8 +88,11 @@ public class Launcher {
 			System.exit(FILE_FORMAT_ERROR);
 		}
 		
-		TweetFetcher fetcher = new TweetFetcher(usernames);
-		fetcher.resumeTweetFetching();
+		//TweetFetcher fetcher = new TweetFetcher(usernames);
+                TweetFilter filter = new TweetFilter();
+                
+                filter.filterTweets(keywords);
+		//fetcher.resumeTweetFetching();
 	}
 
 }
