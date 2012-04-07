@@ -84,7 +84,7 @@ public class StorageManager {
 		try {
 			Connection localConnection = this.getConnection();
 			// http://stackoverflow.com/questions/1335636/twitter-name-length-in-db
-			localConnection.prepareStatement("CREATE TABLE TWEETS (TWEET_ID BIGINT PRIMARY KEY, USERNAME VARCHAR(16), USER_ID BIGINT, TWEET VARCHAR(140), CREATED DATE)").execute();
+			localConnection.prepareStatement("CREATE TABLE TWEETS (TWEET_ID BIGINT PRIMARY KEY, USERNAME VARCHAR(16), USER_ID BIGINT, TWEET VARCHAR(140), CREATED DATE, RETWEET_COUNT BIGINT)").execute();
 			localConnection.prepareStatement("CREATE TABLE FETCH_STATUS (USERNAME VARCHAR(16) PRIMARY KEY, LAST_TWEET_ID BIGINT, LAST_TWEET_DATE DATE, COMPLETE BOOLEAN)").execute();
 		} catch (SQLException e) {
 			e.printStackTrace();
