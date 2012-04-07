@@ -1,0 +1,248 @@
+Alabama,AL
+Birmingham,BHM
+Dothan,DHM
+Huntsville,HSV
+Mobile,MOB
+Montgomery,MGM
+Alaska,AK
+Anchorage,ANC
+Fairbanks,FAI
+Juneau,JNU
+Arizona,AZ
+Flagstaff,FLG
+Phoenix Sky Harbor,PHX
+Tucson,TUS
+Yuma,YUM
+Arkansas,AR
+Fayetteville,FYV
+Little Rock,LIT
+California,CA
+Burbank,BUR
+Fresno,FAT
+Long Beach,LGB
+Los Angeles,LAX
+LA,LAX
+Oakland,OAK
+Ontario,ONT
+Palm Springs,PSP
+Sacramento,SMF
+San Diego,SAN
+San Francisco,SFO
+SF,SFO
+San Jose,SJC
+Santa Ana,SNA
+Colorado,CO
+Aspen,ASE
+Colorado Springs,COS
+Denver,DEN
+Grand Junction,GJT
+Pueblo,PUB
+Connecticut,CT
+Hartford,BDL
+Columbia,DC
+Washington Dulles,IAD
+Washington,DCA
+Florida,FL
+Daytona Beach,DAB
+Fort Lauderdale,FLL
+Fort Meyers,RSW
+Jacksonville,JAX
+Miami,MIA
+Orlando,MCO
+Pensacola,PNS
+St.Petersburg,PIE
+Sarasota,SRQ
+Tampa,TPA
+West Palm Beach,PBI
+Panama,PFN
+Georgia,GA
+Atlanta,ATL
+Hartsfield,ATL
+Augusta,AGS
+Savannah,SAV
+Hawaii,HI
+Hilo,ITO
+Honolulu,HNL
+Kahului,OGG
+Kailua,KOA
+Lihue,LIH
+Idaho,ID
+Boise,BOI
+Illinois,IL
+Chicago,MDW
+O Hare,ORD
+Chicago,ORD
+Moline,MLI
+Peoria,PIA
+Indiana,IN
+Evansville,EVV
+Fort Wayne,FWA
+Indianapolis,IND
+South Bend,SBN
+Iowa,IA
+Cedar Rapids,CID
+Des Moines,DSM
+Kansas,KS
+Wichita,ICT
+Kentucky,KY
+Lexington,LEX
+Louisville,SDF
+Louisiana,LA
+Baton Rouge,BTR
+New Orleans,MSY
+Shreveport,SHV
+Maine,ME
+Augusta,AUG
+Bangor,BGR
+Portland,PWM
+Maryland,MD
+Baltimore,BWI
+Massachusetts,MA
+Boston,BOS
+Logan,BOS
+Hyannis,HYA
+Nantucket,ACK
+Worchester,ORH
+Michigan,MI
+Battlecreek,BTL
+Detroit,DTW
+Detroit,DET
+Flint,FNT
+Grand Rapids,GRR
+Kalamazoo Battle Creek,AZO
+Lansing,LAN
+Saginaw,MBS
+Minnesota,MN
+Duluth,DLH
+Minneapolis,MSP
+Rochester,RST
+Mississippi,MS
+Gulfport,GPT
+Jackson,JAN
+Missouri,MO
+Kansas City,MCI
+St Louis,STL
+Lambert,STL
+Springfield,SGF
+Montana,MT
+Billings,BIL
+Nebraska,NE
+Lincoln,LNK
+Omaha,OMA
+Nevada,NV
+Las Vegas,LAS
+McCarran,LAS
+Reno-Tahoe,RNO
+New Hampshire,NH
+Manchester,MHT
+New Jersey,NJ
+Atlantic City,ACY
+Newark,EWR
+Trenton,TTN
+New Mexico,NM
+Albuquerque,ABQ
+Alamogordo,ALM
+New York,NY
+Albany,ALB
+Buffalo,BUF
+Islip,ISP
+New York,JFK
+New York,LGA
+La Guardia,LGA
+Newburgh,SWF
+Rochester,ROC
+Syracuse,SYR
+Westchester,HPN
+North Carolina,NC
+Asheville,AVL
+Charlotte,CLT
+Douglas,CLT
+Fayetteville,FAY
+Greensboro,GSO
+Raleigh,RDU
+Winston-Salem,INT
+North Dakota,ND
+Bismark,BIS
+Fargo,FAR
+Ohio,OH
+Akron,CAK
+Cincinnati,CVG
+Cleveland,CLE
+Columbus,CMH
+Dayton,DAY
+Toledo,TOL
+Oklahoma,OK
+Oklahoma,OKC
+Tulsa,TUL
+Oregon,OR
+Eugene,EUG
+Portland,PDX
+Portland,HIO
+Hillsboro,HIO
+Salem,SLE
+Pennsylvania,PA
+Allentown,ABE
+Erie,ERI
+Harrisburg,MDT
+Philadelphia,PHL
+Pittsburgh,PIT
+Scranton,AVP
+Rhode Island,RI
+Providence,PVD
+South Carolina,SC
+Charleston,CHS
+Columbia,CAE
+Greenville,GSP
+Myrtle Beach,MYR
+South Dakota,SD
+Pierre,PIR
+Rapid City,RAP
+Sioux Falls,FSD
+Tennessee,TN
+Bristol,TRI
+Chattanooga,CHA
+Knoxville,TYS
+Memphis,MEM
+Nashville,BNA
+Texas,TX
+Amarillo,AMA
+Austin,AUS
+Corpus Christi,CRP
+Dallas,DAL
+Love Field,DAL
+Fort Worth,DFW
+Dallas,DFW
+El Paso,ELP
+Houston,HOU
+Houston,IAH
+Lubbock,LBB
+Midland,MAF
+San Antonio,SAT
+Utah,UT
+Salt Lake City,SLC
+Vermont,VT
+Burlington,BTV
+Montpelier,MPV
+Rutland,RUT
+Virginia,VA
+Dulles,IAD
+Newport News,PHF
+Norfolk,ORF
+Richmond,RIC
+Roanoke,ROA
+Washington,WA
+Pasco,PSC
+Seattle,SEA
+Spokane,GEG
+West Virginia,WV
+Charleston,CRW
+Clarksburg,CKB
+Wisconsin,WI
+Green Bay,GRB
+Madison,MSM
+Milwaukee,MKE
+Wyoming,WY
+Casper,CPR
+Cheyenne,CYS
+Jackson Hole,JAC
+Rock Springs,RKS
