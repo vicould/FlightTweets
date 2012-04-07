@@ -17,15 +17,37 @@ import twitter4j.Twitter;
 import twitter4j.TwitterException;
 import twitter4j.TwitterFactory;
 
+/**
+ * 
+ * The atomic task processing all the fetching task, retrieving from a queue the
+ * usernames to process and the corresponding starting point for this username.
+ * This task should be bound to its launcher in order to receive the messages
+ * specified by the FetcherCallback interface.
+ *
+ */
 public class FetcherTask extends TimerTask {
 	private PriorityQueue<FetchItemBundle> usernamesToFetch;
+	// The user that is is used at this step.
 	private String currentUser;
+	// The id where to start fetching
 	private long currentId;
+	// An instance of the class used to save the fetched tweets 
 	private TweetSaver tweetSaver;
+	// The manager giving access to the db
 	private StorageManager storageManager;
 	private FetcherCallback callback;
+	// A counter to know how many times the couple currentUsername/currentID has been tried if errors happen
 	private int retrialCount;
 	
+	/**
+	 * Prepares an instance of FetcherTask, configuring the elements that need 
+	 * to be fetched, and an instance of a class following the {@link FetcherCallback}
+	 * interface which will be receiving the messages sent during the execution
+	 * of the task.
+	 * @param itemsToFetch A sorted queue containing the elements to fetch, as instances of
+	 * {@link FetchItemBundle}. 
+	 * @param callback The instance of the class to use when message passing is needed. 
+	 */
 	public FetcherTask(PriorityQueue<FetchItemBundle> itemsToFetch, FetcherCallback callback) {
 		super();
 		
@@ -102,6 +124,15 @@ public class FetcherTask extends TimerTask {
 		this.retrialCount++;
 	}
 
+	/**
+	 * The real fetch method, dealing with the twitter API. It picks the username
+	 * and ID as defined by the currentUsername and currentId fields.
+	 * @return Returns a list of the {@link Status}, sorted on the id (newest first). 
+	 * The maximum size of the list is 200, as Twitter does not allow to fetch more tweets at
+	 * a time/
+	 * @throws TwitterException If Twitter is not happy some exceptions might be raised,
+	 * telling to slow down, etc.
+	 */
 	private List<Status> fetchUserTweets() throws TwitterException {
 		if (this.getCurrentUser() != null || this.getCurrentId() != null) {
 			Twitter twitter = new TwitterFactory().getInstance();
@@ -111,6 +142,7 @@ public class FetcherTask extends TimerTask {
 			if (this.getCurrentId() != TweetFetcher.USERNAME_NOT_FETCHED) {
 				paging.maxId(this.getCurrentId() - 1L);
 			}
+			// retrieves 200 tweets at a time.
 			paging.count(200);
 
 			return twitter.getUserTimeline(this.getCurrentUser(), paging);
@@ -118,12 +150,20 @@ public class FetcherTask extends TimerTask {
 		return new ArrayList<Status>();
 	}
 	
+	/**
+	 * Saves the tweets to the db.
+	 * @param statuses
+	 */
 	private void saveTweets(List<Status> statuses) {
 		TweetSaver saver = this.getTweetSaver();
 		saver.saveTweets(statuses);
 	}
 	
-	public void prepareNextRound() {
+	/**
+	 * Prepares the task for the next run, retrieving a new user from the queue
+	 * and installing it in the current fields.
+	 */
+	public void installNewUser() {
 		// updates the currentUser and currentId for next run, takes it from the head of the queue
 		FetchItemBundle nextRound = this.getUsernamesToFetch().poll();
 		if (nextRound != null) {
@@ -134,10 +174,17 @@ public class FetcherTask extends TimerTask {
 		}
 	}
 	
+	/**
+	 * Saves in the db the fetching state, comprised of the id of the last tweet, 
+	 * and the eventual completeness.
+	 * @param lastFetchedStatus The status which should be used to update the db.
+	 * Its creation date is used to know if we reached the date limit.
+	 * @throws SQLException
+	 */
 	private void updateFetchingStatus(Status lastFetchedStatus) throws SQLException {
 		// checks the date, to see if it is less than January 1st, 2011
 		if (lastFetchedStatus.getCreatedAt().compareTo(new GregorianCalendar(2011, 0, 1).getTime()) <= 0) {
-			// updates the db
+			// updates the db, this user is completed
 			PreparedStatement updateStatement = this.getStorageManager().getConnection().prepareStatement("UPDATE FETCH_STATUS SET (LAST_TWEET_ID, LAST_TWEET_DATE, COMPLETE) = (?, ?, TRUE) WHERE USERNAME = ?");
 			updateStatement.setLong(1, lastFetchedStatus.getId());
 			updateStatement.setDate(2, new java.sql.Date(lastFetchedStatus.getCreatedAt().getTime()));
@@ -145,7 +192,7 @@ public class FetcherTask extends TimerTask {
 
 			updateStatement.execute();
 
-			this.prepareNextRound();
+			this.installNewUser();
 		} else {
 			// updates the db
 			PreparedStatement updateStatement = this.getStorageManager().getConnection().prepareStatement("UPDATE FETCH_STATUS SET (LAST_TWEET_ID, LAST_TWEET_DATE) = (?, ?) WHERE USERNAME = ?");
@@ -160,14 +207,24 @@ public class FetcherTask extends TimerTask {
 		}
 	}
 	
+	/**
+	 * Saves in the db that the username has been processed enough (and potentially generating
+	 * too many errors).
+	 * @param username The username for which no tweets should be retrieved anymore.
+	 * @throws SQLException
+	 */
 	public void enough(String username) throws SQLException {
 		PreparedStatement completeStatement = this.getStorageManager().getConnection().prepareStatement("UPDATE FETCH_STATUS SET (COMPLETE) = (TRUE) WHERE USERNAME = ?");
 		completeStatement.setString(1, username);
 		completeStatement.execute();
 		
-		this.prepareNextRound();
+		this.installNewUser();
 	}
 	
+	/**
+	 * The entry point for the task. It triggers the fetching, handling the errors 
+	 * and passing messages to the callback.
+	 */
 	@Override
 	public void run() {
 		try {
@@ -176,6 +233,7 @@ public class FetcherTask extends TimerTask {
 			if (statuses.size() != 0) {
 				System.out.println("Saving " + statuses.size() + " results, last one being " + DateFormat.getDateInstance(DateFormat.MEDIUM).format(statuses.get(statuses.size() - 1).getCreatedAt()));
 				this.saveTweets(statuses);
+				// twitter returns the list with the oldest tweet at the end of the array
 				updateFetchingStatus(statuses.get(statuses.size() - 1));
 			} else {
 				// counts the tweets in the db
@@ -202,7 +260,9 @@ public class FetcherTask extends TimerTask {
 				}
 			}
 		} catch (TwitterException e) {
+			// restores the queue with the username and the id the task was processing before the exception
 			this.getUsernamesToFetch().add(new FetchItemBundle(this.getCurrentUser(), this.getCurrentId()));
+			// forwards the message to the callback
 			this.getCallback().handleFetchFailure(this.getUsernamesToFetch());
 		} catch (SQLException e) {
 			e.printStackTrace();

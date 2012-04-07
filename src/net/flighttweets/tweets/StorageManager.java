@@ -8,7 +8,7 @@ import java.sql.SQLException;
 
 /**
  * Manager for the storage of the tweets. It implements the singleton pattern, 
- * get an instance of the class through the @see getInstance
+ * get an instance of the class through the {@link getInstance} method.
  * The manager provides the connection to the tables, creating them as needed. 
  *
  */
@@ -98,13 +98,24 @@ public class StorageManager {
 		}
 	}
 	
+	public void removeTweets() {
+		try {
+			Connection localConnection = this.getConnection();
+			localConnection.prepareStatement("DELETE FROM TWEETS").execute();
+			localConnection.prepareStatement("DELETE FROM FETCH_STATUS").execute();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
+	
 	/**
 	 * Cleans the database.
 	 */
 	public void dropTables() {
 		try {
 			Connection localConnection = this.getConnection();
-			localConnection.prepareStatement("DROP TABLE TWEETS");
+			localConnection.prepareStatement("DROP TABLE TWEETS").execute();
+			localConnection.prepareStatement("DROP TABLE FETCH_STATUS").execute();
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
