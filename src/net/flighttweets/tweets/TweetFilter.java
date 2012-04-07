@@ -49,33 +49,36 @@ public class TweetFilter {
             this.populateKeywordList(keywordList);
 		try {
                     Connection connection = StorageManager.getInstance().getConnection();
-                    
-                    for (String string : keywordList) {
+                   
+                        for (String string : keywordList) {
                         //get keyword id
-                        String keywordQuery = "SELECT keyword_id FROM KEYWORDS WHERE WORD = '" + string + "'";
-                        Statement kwStatement = connection.createStatement();
-                        ResultSet rs1 = kwStatement.executeQuery(keywordQuery);
-                        if (!rs1.next()) {
-                            continue;
-                        }
-                        int kw_id = rs1.getInt("keyword_id");
-                        String likeClause = "TWEET LIKE '%" + string + "%'";
-                        String retrieveQuery = "SELECT TWEET_ID FROM TWEETS WHERE " + likeClause;
-                        Statement fetchStatement = connection.createStatement();
-                        ResultSet rs2 = fetchStatement.executeQuery(retrieveQuery);
-                        while (rs2.next()) {
-                            long tweet_id = rs2.getLong("TWEET_ID");
-                            String insertQuery = "INSERT INTO KW_TWEET (TWEET_ID,KEYWORD_ID) VALUES (" + tweet_id + "," + kw_id + ")";
-                            Statement insertStatement = connection.createStatement();
-                            insertStatement.execute(insertQuery);
-                            insertStatement.close();
-                        }
-                        fetchStatement.close();
-                    }    
-		} catch (Exception e) {
+                            String keywordQuery = "SELECT keyword_id FROM KEYWORDS WHERE WORD = '" + string + "'";
+                            //System.out.println(keywordQuery);
+                            Statement kwStatement = connection.createStatement();
+                            ResultSet rs1 = kwStatement.executeQuery(keywordQuery);
+                            if (!rs1.next()) {
+                                continue;
+                            }
+                            int kw_id = rs1.getInt("keyword_id");
+                            String likeClause = "TWEETS.TWEET LIKE '%" + string + "%' AND TWEETS.CREATED > EVENTS.START_DATE AND TWEETS.CREATED < EVENTS.END_DATE";
+                            String retrieveQuery = "SELECT TWEETS.TWEET_ID,EVENTS.EVENT_ID FROM TWEETS FULL JOIN EVENTS ON 1=1 WHERE " + likeClause;
+                            //System.out.println(retrieveQuery);
+                            Statement fetchStatement = connection.createStatement();
+                            ResultSet rs2 = fetchStatement.executeQuery(retrieveQuery);
+                            while (rs2.next()) {
+                                long tweet_id = rs2.getLong("TWEETS.TWEET_ID");
+                                long event_id = rs2.getLong("EVENTS.EVENT_ID");
+                                String insertQuery = "INSERT INTO KW_TWEET (TWEET_ID,KEYWORD_ID,EVENT_ID) VALUES (" + tweet_id + "," + kw_id + "," + event_id + ")";
+                                Statement insertStatement = connection.createStatement();
+                                insertStatement.execute(insertQuery);
+                                insertStatement.close();
+                            }
+                            fetchStatement.close();
+                        }    
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
-	}
+            }
 
 	public void saveTweets(List<Status> statusesToSave) {
 		try {
