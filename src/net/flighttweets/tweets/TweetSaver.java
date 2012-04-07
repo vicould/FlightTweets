@@ -24,7 +24,7 @@ public class TweetSaver {
 	public void saveTweets(List<Status> statusesToSave) {
 		try {
 			Connection connection = StorageManager.getInstance().getConnection();
-			PreparedStatement insertStatement = connection.prepareStatement("INSERT INTO TWEETS VALUES (?, ?, ?, ?, ?)");
+			PreparedStatement insertStatement = connection.prepareStatement("INSERT INTO TWEETS VALUES (?, ?, ?, ?, ?, ?)");
 			
 			for (Status status : statusesToSave) {
 				insertStatement.setLong(1, status.getId());
@@ -33,6 +33,7 @@ public class TweetSaver {
 				insertStatement.setString(4, status.getText());
 				// conversion between a java.util.Date and a java.sql.Date
 				insertStatement.setDate(5, new java.sql.Date(status.getCreatedAt().getTime()));
+				insertStatement.setLong(6, status.getRetweetCount());
 				insertStatement.addBatch();
 			}
 			insertStatement.executeBatch();
