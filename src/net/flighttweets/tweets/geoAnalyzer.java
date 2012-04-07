@@ -43,8 +43,8 @@ public class geoAnalyzer
                 Connection conn=StorageManager.getInstance().getConnection();
 
                        //conn.prepareStatement("DROP TABLE AIRPORT_CODES").execute();
-       //            conn.prepareStatement("CREATE TABLE AIRPORT_CODES (AIRPORT_CODE VARCHAR(5), AIRPORT_NAME VARCHAR(25))").execute();
-        /*    i=0;
+                  conn.prepareStatement("CREATE TABLE PUBLIC.AIRPORT_CODES (AIRPORT_CODE VARCHAR(5), AIRPORT_NAME VARCHAR(25))").execute();
+            i=0;
                        while (n>i) {
                                System.out.println(airport_codes.get(i));
                                System.out.println(airport_names.get(i));
@@ -55,7 +55,7 @@ public class geoAnalyzer
            i++;
                        }
 
-*/
+
 
 
                        /*      PreparedStatement str=conn.prepareStatement("select * from kw_tweet");
@@ -70,7 +70,7 @@ public class geoAnalyzer
                       }*/
 
 
-                      PreparedStatement str1=conn.prepareStatement("select * from tweets");
+      /*                PreparedStatement str1=conn.prepareStatement("select * from tweets");
                       ResultSet rs1=str1.executeQuery();
 
                       PreparedStatement str;
@@ -91,7 +91,7 @@ public class geoAnalyzer
                                           if(strTweet.toLowerCase().indexOf(strName.toLowerCase())!=-1||strTweet.toLowerCase().indexOf(strCode.toLowerCase())!=-1)
                                           {
                                                 System.out.println(strName);
-                                                //System.out.println(strTweet);
+                                                System.out.println(strTweet);
                                                 break;
                                           }
 
@@ -101,7 +101,7 @@ public class geoAnalyzer
                       }
                       rs1.close();
                      conn.close();
-
+*/
                       System.out.println("ended");
 
                }
