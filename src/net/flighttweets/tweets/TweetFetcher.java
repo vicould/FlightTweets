@@ -10,6 +10,12 @@ import java.util.Timer;
 
 import net.flighttweets.tweets.data.FetchItemBundle;
 
+/**
+ * 
+ * This class takes care of the fetching process, with some error handling,
+ * fetch resuming, etc.
+ *
+ */
 public class TweetFetcher implements FetcherCallback {
 	private ArrayList<String> usernamesToFetch;
 	private Timer timer;
@@ -47,7 +53,8 @@ public class TweetFetcher implements FetcherCallback {
 	}
 
 	/**
-	 * 
+	 * Restores the fetching state from the db, comparing the usernames passed as initial
+	 * input to this instance to what is currently stored in the db.
 	 */
 	public void resumeTweetFetching() {
 		// explore the db, to see which users have been completely fetched, which are partial, and which are missing 
@@ -60,6 +67,8 @@ public class TweetFetcher implements FetcherCallback {
 		try {
 			connection = StorageManager.getInstance().getConnection();
 
+			// goes through the usernames passed as initial input, and check if 
+			// they are already present in the db.
 			for (String username: this.getUsernamesToFetch()) {
 				usernameState = connection.prepareStatement("SELECT LAST_TWEET_ID, COMPLETE FROM FETCH_STATUS WHERE USERNAME = ?");
 				usernameState.setString(1, username);
@@ -97,6 +106,10 @@ public class TweetFetcher implements FetcherCallback {
 		}
 	}
 	
+	/**
+	 * Configure a timer to fetch tweets for the specified usernames. 
+	 * @param items A priority queue of {@link FetchItemBundle} configuring what to fetch.
+	 */
 	private void launchFetcherTasks(PriorityQueue<FetchItemBundle> items) {
 		Timer timer = new Timer();
 		this.setTimer(timer);
@@ -104,6 +117,9 @@ public class TweetFetcher implements FetcherCallback {
 		timer.schedule(task, 0, 5000);
 	}
 
+	/**
+	 * Stops the app.
+	 */
 	@Override
 	public void fetchComplete() {
 		// TODO Auto-generated method stub
@@ -112,6 +128,9 @@ public class TweetFetcher implements FetcherCallback {
 		System.exit(0);
 	}
 
+	/**
+	 * Reschedules the fetching task for later, after a small delay.
+	 */
 	@Override
 	public void handleFetchFailure(PriorityQueue<FetchItemBundle> currentPoint) {
 		this.getTimer().cancel();
