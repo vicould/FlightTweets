@@ -20,6 +20,9 @@ public class StorageManager {
 		super();
 	}
 	
+	/**
+	 * Checks if the database contains all the necessary tables.
+	 */
 	public void verifyDB() {
 		if (!checkIfTableExist("TWEETS")) {
 			this.createTableTweets();

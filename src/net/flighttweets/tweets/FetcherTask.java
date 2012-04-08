@@ -152,7 +152,7 @@ public class FetcherTask extends TimerTask {
 	
 	/**
 	 * Saves the tweets to the db.
-	 * @param statuses
+	 * @param statuses The list of statuses to save.
 	 */
 	private void saveTweets(List<Status> statuses) {
 		TweetSaver saver = this.getTweetSaver();

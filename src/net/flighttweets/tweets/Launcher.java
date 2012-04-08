@@ -7,6 +7,10 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 
+/**
+ * Entry point for the application, triggering the fetch and the analysis.
+ *
+ */
 public class Launcher {
 	public static final int ARGS_ERROR = 1;
 	public static final int FILE_FORMAT_ERROR = 2;
