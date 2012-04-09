@@ -5,6 +5,7 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.sql.SQLException;
 import java.util.ArrayList;
 
 /**
@@ -92,11 +93,30 @@ public class Launcher {
 			System.exit(FILE_FORMAT_ERROR);
 		}
 		
-		//TweetFetcher fetcher = new TweetFetcher(usernames);
-                TweetFilter filter = new TweetFilter();
-                
-                filter.filterTweets(keywords);
-		//fetcher.resumeTweetFetching();
+		// starts fetching
+		TweetFetcher fetcher = new TweetFetcher(usernames);
+		fetcher.resumeTweetFetching();
+
+		// filters the keywords
+		TweetFilter filter = new TweetFilter();
+		filter.filterTweets(keywords);
+		
+		// processes the tweets
+		TimelinessAnalyzer analyze = new TimelinessAnalyzer();
+		try {
+			analyze.timeliness();
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		GeoAnalyzer geo = new GeoAnalyzer();
+		geo.geographicalAnalyzer();
+		
+		FlightNumberAnalyzer.TweetsWithFlight();
 	}
 
 }

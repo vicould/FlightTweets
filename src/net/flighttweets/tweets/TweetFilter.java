@@ -1,20 +1,9 @@
 package net.flighttweets.tweets;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
-import java.nio.charset.Charset;
 import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.Statement;
 import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.List;
-
-import twitter4j.Status;
 
 public class TweetFilter {
 
