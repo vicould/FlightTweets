@@ -27,20 +27,29 @@ public class TweetFilter {
              int i = 0;
              try {
                 Connection connection = StorageManager.getInstance().getConnection();
-                String removeQuery = "DELETE FROM KEYWORDS";
+               /* String removeQuery = "DELETE FROM KEYWORDS";
                 Statement stmt = connection.createStatement();
                 if (!stmt.execute(removeQuery)) {
                     System.err.println("Error executing query: " + removeQuery);
                     
-                }
+                }*/
+                 
                 for (String word : keywordList) {
+                    
+                    //do not insert keywords which are already there.
+                    String checkQuery = "SELECT keyword_id FROM KEYWORDS WHERE word='" + word + "'";
+                    Statement checkStmt = connection.createStatement();
+                    ResultSet rs = checkStmt.executeQuery(checkQuery);
+                    if (rs.next()) {
+                        continue;
+                    }
                     String query = "INSERT INTO KEYWORDS (keyword_id, word) VALUES (" + i + ",'" + word + "')";
                     Statement insertStmt = connection.createStatement();
                     insertStmt.execute(query);
                     i++;
                     insertStmt.close();
                 }
-                stmt.close();
+                //stmt.close();
              } catch (Exception e) {
                  e.printStackTrace();
              }
@@ -68,6 +77,9 @@ public class TweetFilter {
                             while (rs2.next()) {
                                 long tweet_id = rs2.getLong("TWEETS.TWEET_ID");
                                 long event_id = rs2.getLong("EVENTS.EVENT_ID");
+                                String checkQuery = "SELECT * FROM KW_TWEET WHERE TWEET_ID=" + tweet_id + " AND KEYWORD_ID=" + kw_id + " AND EVENT_ID=" + event_id;
+                                Statement checkStatement = connection.createStatement();
+                                ResultSet crs = checkStatement.executeQuery(checkQuery);
                                 String insertQuery = "INSERT INTO KW_TWEET (TWEET_ID,KEYWORD_ID,EVENT_ID) VALUES (" + tweet_id + "," + kw_id + "," + event_id + ")";
                                 Statement insertStatement = connection.createStatement();
                                 insertStatement.execute(insertQuery);

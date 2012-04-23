@@ -92,11 +92,12 @@ public class Launcher {
 			System.exit(FILE_FORMAT_ERROR);
 		}
 		
-		//TweetFetcher fetcher = new TweetFetcher(usernames);
+		TweetFetcher fetcher = new TweetFetcher(usernames);
+                fetcher.resumeTweetFetching();
                 TweetFilter filter = new TweetFilter();
                 
                 filter.filterTweets(keywords);
-		//fetcher.resumeTweetFetching();
+
 	}
 
 }
