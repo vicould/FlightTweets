@@ -23,17 +23,48 @@ public class TweetFilter {
 	 * @param statusesToSave A list of statuses.
 	 */
 
+         public static void populateEventList(List<String> eventList) {
+             //event name;start-date;end-date
+             int i = 0;
+             try {
+                 Connection connection = StorageManager.getInstance().getConnection();
+                 String countQuery = "SELECT event_id FROM events";
+                 Statement countStmt = connection.createStatement();
+                 ResultSet rsc = countStmt.executeQuery(countQuery);
+                 int minInt = -1;
+                 while (rsc.next()) {
+                     int testInt = rsc.getInt("event_id");
+                     if (testInt > minInt) {
+                         minInt = testInt;
+                     }
+                     
+                 }
+                 minInt = minInt + 1;
+                 for (String word : eventList) {
+                     String[] tokens = word.split(";");
+                     String name = tokens[0];
+                     String startDate = tokens[1];
+                     String endDate = tokens[2];
+                     String checkQuery = "SELECT event_id FROM EVENTS WHERE EVENT_NAME='" + name + "'";
+                     Statement checkStmt = connection.createStatement();
+                     ResultSet rs = checkStmt.executeQuery(checkQuery);
+                     if (rs.next()) {
+                         continue;
+                     }
+                     String insertQuery = "INSERT INTO EVENTS (event_id,event_name,start_date,end_date) VALUES (" + minInt +",'" + name + "','" + startDate + "','" + endDate + "')";
+                     Statement insertStmt = connection.createStatement();
+                     insertStmt.execute(insertQuery);
+                     minInt++;
+                 }
+             } catch (Exception e) {
+                 e.printStackTrace();
+             }
+         }
+    
          public void populateKeywordList(List<String> keywordList) {
              int i = 0;
              try {
-                Connection connection = StorageManager.getInstance().getConnection();
-               /* String removeQuery = "DELETE FROM KEYWORDS";
-                Statement stmt = connection.createStatement();
-                if (!stmt.execute(removeQuery)) {
-                    System.err.println("Error executing query: " + removeQuery);
-                    
-                }*/
-                 
+                Connection connection = StorageManager.getInstance().getConnection();                 
                 for (String word : keywordList) {
                     
                     //do not insert keywords which are already there.
@@ -41,6 +72,7 @@ public class TweetFilter {
                     Statement checkStmt = connection.createStatement();
                     ResultSet rs = checkStmt.executeQuery(checkQuery);
                     if (rs.next()) {
+                        i++;
                         continue;
                     }
                     String query = "INSERT INTO KEYWORDS (keyword_id, word) VALUES (" + i + ",'" + word + "')";
@@ -80,6 +112,9 @@ public class TweetFilter {
                                 String checkQuery = "SELECT * FROM KW_TWEET WHERE TWEET_ID=" + tweet_id + " AND KEYWORD_ID=" + kw_id + " AND EVENT_ID=" + event_id;
                                 Statement checkStatement = connection.createStatement();
                                 ResultSet crs = checkStatement.executeQuery(checkQuery);
+                                if (crs.next()) {
+                                    continue;
+                                }
                                 String insertQuery = "INSERT INTO KW_TWEET (TWEET_ID,KEYWORD_ID,EVENT_ID) VALUES (" + tweet_id + "," + kw_id + "," + event_id + ")";
                                 Statement insertStatement = connection.createStatement();
                                 insertStatement.execute(insertQuery);

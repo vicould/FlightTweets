@@ -22,7 +22,7 @@ public class Launcher {
 	 * @param keywords An empty array that we will fill with the keywords.
 	 * @return True if we parsed everything correctly. False otherwise.
 	 */
-	public static boolean readInputFile(String filename, ArrayList<String> usernames, ArrayList<String> keywords) {
+	public static boolean readInputFile(String filename, ArrayList<String> usernames, ArrayList<String> keywords,ArrayList<String>events) {
 		try {
 			BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(filename)));
 			
@@ -55,7 +55,11 @@ public class Launcher {
 			} else {
 				return false;
 			}
-			
+			String eventString;
+                        while ((eventString = reader.readLine()) != null) {
+                            events.add(eventString);
+                        }
+                
 			return true;
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
@@ -81,8 +85,9 @@ public class Launcher {
 		
 		ArrayList<String> usernames = new ArrayList<String>();
 		ArrayList<String> keywords = new ArrayList<String>();
+                ArrayList<String> events = new ArrayList<String>();
 		
-		boolean success = readInputFile(args[0], usernames, keywords);
+		boolean success = readInputFile(args[0], usernames, keywords,events);
 		
 		if (!success) {
 			System.out.println("There was an issue with the input file, please check the format.");
@@ -94,6 +99,7 @@ public class Launcher {
 		
 		TweetFetcher fetcher = new TweetFetcher(usernames);
                 fetcher.resumeTweetFetching();
+                TweetFilter.populateEventList(events);
                 TweetFilter filter = new TweetFilter();
                 
                 filter.filterTweets(keywords);
