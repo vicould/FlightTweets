@@ -26,7 +26,9 @@ import twitter4j.TwitterFactory;
  *
  */
 public class FetcherTask extends TimerTask {
+	private boolean fromReplies;
 	private PriorityQueue<FetchItemBundle> usernamesToFetch;
+	private PriorityQueue<FetchItemBundle> repliesToFetch;
 	// The user that is is used at this step.
 	private String currentUser;
 	// The id where to start fetching
@@ -44,14 +46,15 @@ public class FetcherTask extends TimerTask {
 	 * to be fetched, and an instance of a class following the {@link FetcherCallback}
 	 * interface which will be receiving the messages sent during the execution
 	 * of the task.
-	 * @param itemsToFetch A sorted queue containing the elements to fetch, as instances of
+	 * @param usersToFetch A sorted queue containing the elements to fetch, as instances of
 	 * {@link FetchItemBundle}. 
 	 * @param callback The instance of the class to use when message passing is needed. 
 	 */
-	public FetcherTask(PriorityQueue<FetchItemBundle> itemsToFetch, FetcherCallback callback) {
+	public FetcherTask(PriorityQueue<FetchItemBundle> usersToFetch, PriorityQueue<FetchItemBundle> repliesToFetch, FetcherCallback callback) {
 		super();
 		
-		this.setUsernamesToFetch(itemsToFetch);
+		this.setUsernamesToFetch(usersToFetch);
+		this.setRepliesToFetch(repliesToFetch);
 		this.setTweetSaver(new TweetSaver());
 		this.setStorageManager(StorageManager.getInstance());
 		this.setCallback(callback);
@@ -120,8 +123,38 @@ public class FetcherTask extends TimerTask {
 		this.retrialCount = retrialCount;
 	}
 	
+	private PriorityQueue<FetchItemBundle> getRepliesToFetch() {
+		return repliesToFetch;
+	}
+
+	private void setRepliesToFetch(PriorityQueue<FetchItemBundle> repliesToFetch) {
+		this.repliesToFetch = repliesToFetch;
+	}
+
+	private boolean isFromReplies() {
+		return fromReplies;
+	}
+
+	private void setFromReplies(boolean fromReplies) {
+		this.fromReplies = fromReplies;
+	}
+
 	private void retrialCountPlusOne() {
 		this.retrialCount++;
+	}
+	
+	/**
+	 * 
+	 * @param statuses
+	 */
+	private void populateRepliesQueue(List<Status> statuses) {
+		long replyId;
+		for (Status status: statuses) {
+			replyId = status.getInReplyToStatusId();
+			if (replyId != -1) {
+				this.getRepliesToFetch().add(new FetchItemBundle(status.getInReplyToScreenName(), status.getInReplyToStatusId()));
+			}
+		}
 	}
 
 	/**
@@ -150,6 +183,14 @@ public class FetcherTask extends TimerTask {
 		return new ArrayList<Status>();
 	}
 	
+	private Status getTweet() throws TwitterException {
+		if (this.getCurrentUser() != null || this.getCurrentId() != null) {
+			Twitter twitter= new TwitterFactory().getInstance();
+			return twitter.showStatus(this.getCurrentId());
+		}
+		return null;
+	}
+	
 	/**
 	 * Saves the tweets to the db.
 	 * @param statuses The list of statuses to save.
@@ -159,18 +200,31 @@ public class FetcherTask extends TimerTask {
 		saver.saveTweets(statuses);
 	}
 	
+	private void saveTweet(Status status) {
+		TweetSaver saver = this.getTweetSaver();
+		saver.saveTweet(status);
+	}
+	
 	/**
 	 * Prepares the task for the next run, retrieving a new user from the queue
 	 * and installing it in the current fields.
 	 */
-	public void installNewUser() {
+	public void feedFetcher() {
 		// updates the currentUser and currentId for next run, takes it from the head of the queue
 		FetchItemBundle nextRound = this.getUsernamesToFetch().poll();
 		if (nextRound != null) {
 			this.setCurrentId(nextRound.getTweetId());
 			this.setCurrentUser(nextRound.getUsername());
+			this.setFromReplies(false);
 		} else {
-			this.getCallback().fetchComplete();
+			nextRound = this.getRepliesToFetch().poll();
+			if (nextRound != null) {
+				this.setCurrentId(nextRound.getTweetId());
+				this.setCurrentUser(nextRound.getUsername());
+				this.setFromReplies(true);
+			} else {
+				this.getCallback().fetchComplete();
+			}
 		}
 	}
 	
@@ -192,7 +246,7 @@ public class FetcherTask extends TimerTask {
 
 			updateStatement.execute();
 
-			this.installNewUser();
+			this.feedFetcher();
 		} else {
 			// updates the db
 			PreparedStatement updateStatement = this.getStorageManager().getConnection().prepareStatement("UPDATE FETCH_STATUS SET (LAST_TWEET_ID, LAST_TWEET_DATE) = (?, ?) WHERE USERNAME = ?");
@@ -218,7 +272,7 @@ public class FetcherTask extends TimerTask {
 		completeStatement.setString(1, username);
 		completeStatement.execute();
 		
-		this.installNewUser();
+		this.feedFetcher();
 	}
 	
 	/**
@@ -228,42 +282,56 @@ public class FetcherTask extends TimerTask {
 	@Override
 	public void run() {
 		try {
-			System.out.println("Fetching a new batch for " + this.getCurrentUser() + " before " + this.getCurrentId());
-			List<Status> statuses = this.fetchUserTweets();
-			if (statuses.size() != 0) {
-				System.out.println("Saving " + statuses.size() + " results, last one being " + DateFormat.getDateInstance(DateFormat.MEDIUM).format(statuses.get(statuses.size() - 1).getCreatedAt()));
-				this.saveTweets(statuses);
-				// twitter returns the list with the oldest tweet at the end of the array
-				updateFetchingStatus(statuses.get(statuses.size() - 1));
+			if (this.isFromReplies()) {
+				System.out.println("Fetching single tweet for " + this.getCurrentUser() + " with the id " + this.getCurrentId());
+				Status status = this.getTweet();
+				if (status != null) {
+					System.out.println("Saving one tweet");
+					this.saveTweet(status);
+				}
 			} else {
-				// counts the tweets in the db
-				PreparedStatement countStatement = this.getStorageManager().getConnection().prepareStatement("SELECT COUNT(TWEET_ID) FROM TWEETS WHERE USERNAME = ?");
-				countStatement.setString(1, this.getCurrentUser());
-				ResultSet countResult = countStatement.executeQuery();
-				if (countResult.next()) {
-					// if it is over 3200, Twitter does not allow us to get more tweets
-					// so we have to consider the fetch is complete
-					if (countResult.getInt(1) >= 3200) {
-						System.out.println("Enough for " + this.getCurrentUser());
-						// updates the db
-						this.enough(this.getCurrentUser());
-					} else {
-						System.out.println("Twitter returned an empty response, but I don't know why.");
-						// try 5 times, otherwise we get bored
-						this.retrialCountPlusOne();
-						if (this.getRetrialCount() == 5) {
-							// enough!
-							System.out.println("5 times is enough for " + this.getCurrentUser());
+				System.out.println("Fetching a new batch for " + this.getCurrentUser() + " before " + this.getCurrentId());
+				List<Status> statuses = this.fetchUserTweets();
+				if (statuses.size() != 0) {
+					this.populateRepliesQueue(statuses);
+					System.out.println("Saving " + statuses.size() + " results, last one being " + DateFormat.getDateInstance(DateFormat.MEDIUM).format(statuses.get(statuses.size() - 1).getCreatedAt()));
+					this.saveTweets(statuses);
+					// twitter returns the list with the oldest tweet at the end of the array
+					updateFetchingStatus(statuses.get(statuses.size() - 1));
+				} else {
+					// counts the tweets in the db
+					PreparedStatement countStatement = this.getStorageManager().getConnection().prepareStatement("SELECT COUNT(TWEET_ID) FROM TWEETS WHERE USERNAME = ?");
+					countStatement.setString(1, this.getCurrentUser());
+					ResultSet countResult = countStatement.executeQuery();
+					if (countResult.next()) {
+						// if it is over 3200, Twitter does not allow us to get more tweets
+						// so we have to consider the fetch is complete
+						if (countResult.getInt(1) >= 3200) {
+							System.out.println("Enough for " + this.getCurrentUser());
+							// updates the db
 							this.enough(this.getCurrentUser());
+						} else {
+							System.out.println("Twitter returned an empty response, but I don't know why.");
+							// try 5 times, otherwise we get bored
+							this.retrialCountPlusOne();
+							if (this.getRetrialCount() == 5) {
+								// enough!
+								System.out.println("5 times is enough for " + this.getCurrentUser());
+								this.enough(this.getCurrentUser());
+							}
 						}
 					}
 				}
 			}
 		} catch (TwitterException e) {
+			if (!this.isFromReplies()) {
 			// restores the queue with the username and the id the task was processing before the exception
 			this.getUsernamesToFetch().add(new FetchItemBundle(this.getCurrentUser(), this.getCurrentId()));
+			} else {
+				this.getRepliesToFetch().add(new FetchItemBundle(this.getCurrentUser(), this.getCurrentId()));
+			}
 			// forwards the message to the callback
-			this.getCallback().handleFetchFailure(this.getUsernamesToFetch());
+			this.getCallback().handleFetchFailure(this.getUsernamesToFetch(), this.getRepliesToFetch());
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}

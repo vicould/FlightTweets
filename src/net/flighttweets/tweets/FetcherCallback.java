@@ -22,7 +22,8 @@ public interface FetcherCallback {
 	 * having this error.
 	 * Here should be implemented recovery attempts, such as waiting before
 	 * trying again, etc.
-	 * @param currentPoint The item representing where the tweet
+	 * @param currentPointForUsers The remaining users to explore
+	 * @param currentPointForReplies The remaining replies to fetch
 	 */
-	public void handleFetchFailure(PriorityQueue<FetchItemBundle> currentPoint);
+	public void handleFetchFailure(PriorityQueue<FetchItemBundle> currentPointForUsers, PriorityQueue<FetchItemBundle> currentPointForReplies);
 }

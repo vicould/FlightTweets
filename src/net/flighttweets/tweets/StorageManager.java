@@ -86,7 +86,7 @@ public class StorageManager {
 	private void createTableTweets() {
 		try {
 			Connection localConnection = this.getConnection();
-			localConnection.prepareStatement("CREATE TABLE TWEETS (TWEET_ID BIGINT PRIMARY KEY, USERNAME VARCHAR(16), USER_ID BIGINT, TWEET VARCHAR(140), CREATED TIMESTAMP, RETWEET_COUNT BIGINT)").execute();
+			localConnection.prepareStatement("CREATE TABLE TWEETS (TWEET_ID BIGINT PRIMARY KEY, USERNAME VARCHAR(16), USER_ID BIGINT, TWEET VARCHAR(140), CREATED TIMESTAMP, RETWEET_COUNT BIGINT, IN_REPLY_TO BIGINT)").execute();
 			} catch (SQLException e) {
 				e.printStackTrace();
 			}

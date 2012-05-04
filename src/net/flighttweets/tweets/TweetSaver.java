@@ -24,7 +24,7 @@ public class TweetSaver {
 	public void saveTweets(List<Status> statusesToSave) {
 		try {
 			Connection connection = StorageManager.getInstance().getConnection();
-			PreparedStatement insertStatement = connection.prepareStatement("INSERT INTO TWEETS VALUES (?, ?, ?, ?, ?, ?)");
+			PreparedStatement insertStatement = connection.prepareStatement("INSERT INTO TWEETS VALUES (?, ?, ?, ?, ?, ?, ?)");
 			
 			for (Status status : statusesToSave) {
 				insertStatement.setLong(1, status.getId());
@@ -34,6 +34,7 @@ public class TweetSaver {
 				// conversion between a java.util.Date and a java.sql.Date
 				insertStatement.setDate(5, new java.sql.Date(status.getCreatedAt().getTime()));
 				insertStatement.setLong(6, status.getRetweetCount());
+				insertStatement.setLong(7, status.getInReplyToStatusId());
 				insertStatement.addBatch();
 			}
 			insertStatement.executeBatch();
@@ -67,6 +68,33 @@ public class TweetSaver {
 		} catch (SQLException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+
+	/**
+	 * Save a single status in the database
+	 * @param status
+	 */
+	public void saveTweet(Status status) {
+		// TODO Auto-generated method stub
+		try {
+			Connection connection = StorageManager.getInstance().getConnection();
+			PreparedStatement insertStatement = connection.prepareStatement("INSERT INTO TWEETS VALUES (?, ?, ?, ?, ?, ?, ?)");
+			
+			insertStatement.setLong(1, status.getId());
+			insertStatement.setString(2, status.getUser().getScreenName());
+			insertStatement.setLong(3, status.getUser().getId());
+			insertStatement.setString(4, status.getText());
+			// conversion between a java.util.Date and a java.sql.Date
+			insertStatement.setDate(5, new java.sql.Date(status.getCreatedAt().getTime()));
+			insertStatement.setLong(6, status.getRetweetCount());
+			insertStatement.setLong(7, status.getRetweetCount());
+			insertStatement.setLong(8, status.getInReplyToStatusId());
+			
+			insertStatement.execute();
+		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
