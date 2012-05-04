@@ -34,7 +34,7 @@ public class Launcher {
 	 */
         
         
-        public static TweetConfigType readInput (String filename, ArrayList<String> usernames, ArrayList<String> keywords, ArrayList<String>events) {
+        public static TweetConfigType readInput (String filename, ArrayList<String> usernames, ArrayList<String> keywords, ArrayList<String>events, ArrayList<String>airlines, ArrayList<String>weatherStations) {
             try {
                 jc = JAXBContext.newInstance("net.flighttweets.tweets.jaxb");
                 marshaller = jc.createMarshaller();
@@ -61,6 +61,12 @@ public class Launcher {
             }
             for (i = 0; i < returnType.getUsername().size();i++) {
                 usernames.add(returnType.getUsername().get(i));
+            }
+            for (i = 0; i < returnType.getAirline().size();i++) {
+                airlines.add(returnType.getAirline().get(i));
+            }
+            for (i = 0; i < returnType.getWeatherStation().size();i++) {
+                weatherStations.add(returnType.getWeatherStation().get(i));
             }
             for (i = 0;i < returnType.getEvent().size();i++) {
                 EventType event = returnType.getEvent().get(i);
@@ -130,10 +136,12 @@ public class Launcher {
 			System.exit(ARGS_ERROR);
 		}
 		
+                ArrayList<String>airlines = new ArrayList<String>();
+                ArrayList<String>weatherStations = new ArrayList<String>();
 		ArrayList<String> usernames = new ArrayList<String>();
 		ArrayList<String> keywords = new ArrayList<String>();
                 ArrayList<String> events = new ArrayList<String>();
-		TweetConfigType tweetConf = readInput(args[0],usernames,keywords,events);
+		TweetConfigType tweetConf = readInput(args[0],usernames,keywords,events,airlines,weatherStations);
 		//boolean success = readInputFile(args[0], usernames, keywords,events);
 		
 		if (tweetConf == null) {
