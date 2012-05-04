@@ -1,0 +1,38 @@
+<TweetConfig>
+    <username>AmericanAir</username>
+    <username>Delta</username>
+    <username>JetBlue</username>
+    <username>SouthwestAir</username>
+    <username>SpiritAirlines</username>
+    <username>united</username>
+    <username>weatherchannel</username>
+    <username>accuweather</username>
+    <username>breakingweather</username>
+    <username>usnoaagov</username>
+    <keyword>airline</keyword>
+    <keyword>flight</keyword>
+    <keyword>delay</keyword>
+    <keyword>delivered</keyword>
+    <keyword>plane</keyword>
+    <keyword>airplane</keyword>
+    <keyword>weather</keyword>
+    <keyword>forecast</keyword>
+    <keyword>airport</keyword>
+    <keyword>schedule</keyword>
+    <keyword>cancelled</keyword>
+    <keyword>reschedule</keyword>
+    <keyword>postponed</keyword>
+    <keyword>postpone</keyword>
+    <keyword>take off</keyword>
+    <keyword>boarding</keyword>
+    <keyword>luggage</keyword>
+    <keyword>bag</keyword>
+    <keyword>bags</keyword>
+    <keyword>on time</keyword>
+    <keyword>October Snowstorm</keyword>
+    <keyword>Hurricane</keyword>
+    <keyword>Irene</keyword>
+    <keyword>disaster</keyword>
+    <event><eventName>HolidaySeason</eventName><startDate>2011-12-01</startDate><endDate>2011-12-31</endDate></event>
+    <event><eventName>January</eventName><startDate>2012-01-01</startDate><endDate>2012-01-31</endDate></event>
+</TweetConfig>

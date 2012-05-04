@@ -89,8 +89,8 @@ public class TweetSaver {
 			insertStatement.setString(4, status.getText());
 			// conversion between a java.util.Date and a java.sql.Date
 			insertStatement.setDate(5, new java.sql.Date(status.getCreatedAt().getTime()));
-			insertStatement.setLong(6, status.getRetweetCount());
-			insertStatement.setLong(7, status.getInReplyToStatusId());
+			insertStatement.setLong(6, -1L);
+			insertStatement.setLong(7, -1L);
 			
 			insertStatement.execute();
 		} catch (SQLException e) {

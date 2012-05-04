@@ -42,7 +42,7 @@ public class FetchItemBundle implements Comparable<FetchItemBundle> {
 
 	@Override
 	public int compareTo(FetchItemBundle o) {
-		return this.getUsername().compareTo(o.getUsername());		
+		return new Long(this.getTweetId()).compareTo(o.getTweetId());		
 	}
 	
 }

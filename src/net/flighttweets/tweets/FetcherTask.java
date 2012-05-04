@@ -6,8 +6,10 @@ import java.sql.SQLException;
 import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.GregorianCalendar;
+import java.util.HashSet;
 import java.util.List;
 import java.util.PriorityQueue;
+import java.util.Set;
 import java.util.TimerTask;
 
 import net.flighttweets.tweets.data.FetchItemBundle;
@@ -60,11 +62,7 @@ public class FetcherTask extends TimerTask {
 		this.setCallback(callback);
 		this.setRetrialCount(0);
 		
-		FetchItemBundle firstItem = this.getUsernamesToFetch().poll();
-		if (firstItem != null) {
-			this.setCurrentId(firstItem.getTweetId());
-			this.setCurrentUser(firstItem.getUsername());
-		}
+		this.feedFetcher();
 	}
 	
 	public PriorityQueue<FetchItemBundle> getUsernamesToFetch() {
@@ -146,15 +144,23 @@ public class FetcherTask extends TimerTask {
 	/**
 	 * 
 	 * @param statuses
+	 * @throws SQLException 
 	 */
-	private void populateRepliesQueue(List<Status> statuses) {
+	private void populateRepliesQueue(List<Status> statuses) throws SQLException {
 		long replyId;
+		FetchItemBundle reply;
+		HashSet<FetchItemBundle> replies = new HashSet<FetchItemBundle>(statuses.size());
+		
 		for (Status status: statuses) {
 			replyId = status.getInReplyToStatusId();
 			if (replyId != -1) {
-				this.getRepliesToFetch().add(new FetchItemBundle(status.getInReplyToScreenName(), status.getInReplyToStatusId()));
+				reply = new FetchItemBundle(status.getInReplyToScreenName(), status.getInReplyToStatusId());
+				replies.add(reply);
+				this.getRepliesToFetch().add(reply);
 			}
 		}
+		
+		this.setRepliesToFetch(replies);
 	}
 
 	/**
@@ -228,6 +234,28 @@ public class FetcherTask extends TimerTask {
 		}
 	}
 	
+	private void setRepliesToFetch(Set<FetchItemBundle> replies) throws SQLException {
+		PreparedStatement insertStatement = this.getStorageManager().getConnection().prepareStatement("INSERT INTO REPLIES_TO_FETCH VALUES (?, ?)");
+		try {
+			for (FetchItemBundle singleReply: replies) { 
+				insertStatement.setLong(1, singleReply.getTweetId());
+				insertStatement.setString(2, singleReply.getUsername());
+				insertStatement.addBatch();
+			}
+			insertStatement.executeBatch();
+		} catch (SQLException e) {
+			
+		}
+	}
+	
+	private void markReplyAsFetched(Status fetchedStatus) throws SQLException {
+		PreparedStatement updateStatement = this.getStorageManager().getConnection().prepareStatement("DELETE FROM REPLIES_TO_FETCH WHERE ID = ?");
+		updateStatement.setLong(1, fetchedStatus.getId());
+		updateStatement.execute();
+		
+		this.feedFetcher();
+	}
+	
 	/**
 	 * Saves in the db the fetching state, comprised of the id of the last tweet, 
 	 * and the eventual completeness.
@@ -286,6 +314,7 @@ public class FetcherTask extends TimerTask {
 				System.out.println("Fetching single tweet for " + this.getCurrentUser() + " with the id " + this.getCurrentId());
 				Status status = this.getTweet();
 				if (status != null) {
+					this.markReplyAsFetched(status);
 					System.out.println("Saving one tweet");
 					this.saveTweet(status);
 				}
@@ -324,14 +353,25 @@ public class FetcherTask extends TimerTask {
 				}
 			}
 		} catch (TwitterException e) {
-			if (!this.isFromReplies()) {
-			// restores the queue with the username and the id the task was processing before the exception
-			this.getUsernamesToFetch().add(new FetchItemBundle(this.getCurrentUser(), this.getCurrentId()));
+			if (e.getStatusCode() == 403) {
+				// we are not authorized to view this user
+				// let's switch to another one
+				System.out.println(this.getCurrentUser() + " has probably a private account");
+				this.feedFetcher();
+			} else if (e.getStatusCode() == 404) {
+				// status not found
+				System.out.println(this.getCurrentUser() + " has probably deleted this status " + this.getCurrentId());
+				this.feedFetcher();
 			} else {
-				this.getRepliesToFetch().add(new FetchItemBundle(this.getCurrentUser(), this.getCurrentId()));
+				if (!this.isFromReplies()) {
+					// restores the queue with the username and the id the task was processing before the exception
+					this.getUsernamesToFetch().add(new FetchItemBundle(this.getCurrentUser(), this.getCurrentId()));
+				} else {
+					this.getRepliesToFetch().add(new FetchItemBundle(this.getCurrentUser(), this.getCurrentId()));
+				}
+				// forwards the message to the callback
+				this.getCallback().handleFetchFailure(this.getUsernamesToFetch(), this.getRepliesToFetch());
 			}
-			// forwards the message to the callback
-			this.getCallback().handleFetchFailure(this.getUsernamesToFetch(), this.getRepliesToFetch());
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}

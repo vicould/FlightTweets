@@ -20,7 +20,7 @@ public class TweetFetcher implements FetcherCallback {
 	private ArrayList<String> usernamesToFetch;
 	private Timer timer;
 	
-	public static final Long USERNAME_NOT_FETCHED = - 1L;
+	public static final long USERNAME_NOT_FETCHED = - 1L;
 	
 	/**
 	 * Creates an instance of the fetcher with the specified usernames to use for the fetching.
@@ -59,7 +59,8 @@ public class TweetFetcher implements FetcherCallback {
 	public void resumeTweetFetching() {
 		// explore the db, to see which users have been completely fetched, which are partial, and which are missing 
 		// use the specific meta table
-		PriorityQueue<FetchItemBundle> toDo = new PriorityQueue<FetchItemBundle>(this.getUsernamesToFetch().size());
+		PriorityQueue<FetchItemBundle> usernamesToDo = new PriorityQueue<FetchItemBundle>(this.getUsernamesToFetch().size());
+		PriorityQueue<FetchItemBundle> repliesToDo = new PriorityQueue<FetchItemBundle>();
 		PreparedStatement usernameState;
 		ResultSet status;
 		
@@ -76,7 +77,7 @@ public class TweetFetcher implements FetcherCallback {
 				if (!status.next()) {
 					System.out.println(username + " is new, creating state row");
 					// nothing has been fetched for this user
-					toDo.add(new FetchItemBundle(username, USERNAME_NOT_FETCHED));
+					usernamesToDo.add(new FetchItemBundle(username, USERNAME_NOT_FETCHED));
 					// creates an entry in the fetch_status table for it
 					PreparedStatement usernameStateCreation = connection.prepareStatement("INSERT INTO FETCH_STATUS VALUES (?, ?, ?, ?)");
 					usernameStateCreation.setString(1, username);
@@ -91,12 +92,21 @@ public class TweetFetcher implements FetcherCallback {
 					continue;
 				} else {
 					System.out.println("Restoring " + username + " from " + status.getLong("LAST_TWEET_ID"));
-					toDo.add(new FetchItemBundle(username, status.getLong("LAST_TWEET_ID")));
+					usernamesToDo.add(new FetchItemBundle(username, status.getLong("LAST_TWEET_ID")));
 				}
 			}
-			if (toDo.size() != 0) {
+			
+			// goes through the replies
+			PreparedStatement repliesQuery = connection.prepareStatement("SELECT * FROM REPLIES_TO_FETCH");
+			ResultSet repliesResults = repliesQuery.executeQuery();
+			
+			while (repliesResults.next()) {
+				repliesToDo.add(new FetchItemBundle(repliesResults.getString("USERNAME"), repliesResults.getLong("ID")));
+			}
+			
+			if (usernamesToDo.size() != 0 || repliesToDo.size() != 0) {
 				System.out.println("Launching fetch task");
-				this.launchFetcherTasks(toDo);
+				this.launchFetcherTasks(usernamesToDo, repliesToDo);
 			} else {
 				System.out.println("Nothing to do, all the tweets have been fetched");
 			}
@@ -108,13 +118,17 @@ public class TweetFetcher implements FetcherCallback {
 	
 	/**
 	 * Configure a timer to fetch tweets for the specified usernames. 
-	 * @param items A priority queue of {@link FetchItemBundle} configuring what to fetch.
+	 * @param usernames A priority queue of {@link FetchItemBundle} configuring what to fetch.
 	 */
-	private void launchFetcherTasks(PriorityQueue<FetchItemBundle> items) {
+	private void launchFetcherTasks(PriorityQueue<FetchItemBundle> usernames, PriorityQueue<FetchItemBundle> replies) {
 		Timer timer = new Timer();
 		this.setTimer(timer);
-		FetcherTask task = new FetcherTask(items, new PriorityQueue<FetchItemBundle>(), this);
-		timer.schedule(task, 0, 5000);
+		FetcherTask task = new FetcherTask(usernames, replies, this);
+		if (usernames.size() != 0) {
+			timer.schedule(task, 0, 5000);
+		} else {
+			timer.schedule(task, 0, 10);
+		}
 	}
 
 	/**
@@ -125,7 +139,8 @@ public class TweetFetcher implements FetcherCallback {
 		// TODO Auto-generated method stub
 		this.getTimer().cancel();
 		System.out.println("Fetch terminated");
-		System.exit(0);
+		
+		Launcher.performAnalysis();
 	}
 
 	/**
@@ -136,7 +151,11 @@ public class TweetFetcher implements FetcherCallback {
 		this.getTimer().cancel();
 		this.setTimer(new Timer());
 		FetcherTask task = new FetcherTask(currentPointForUsers, currentPointForReplies, this);
-		this.getTimer().schedule(task, 30000, 5000);
+		if (currentPointForUsers.size() != 0) {
+			timer.schedule(task, 30000, 5000);
+		} else {
+			timer.schedule(task, 30000, 10);
+		}
 	}
 
 }

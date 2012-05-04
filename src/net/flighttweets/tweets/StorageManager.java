@@ -15,11 +15,11 @@ import java.sql.SQLException;
 public class StorageManager {
 
 	private static StorageManager instance;
-	
+
 	private StorageManager() {
 		super();
 	}
-	
+
 	/**
 	 * Checks if the database contains all the necessary tables.
 	 */
@@ -30,8 +30,11 @@ public class StorageManager {
 		if (!this.checkIfTableExist("FETCH_STATUS")) {
 			this.createTableFetchStatus();
 		}
+		if (!this.checkIfTableExist("REPLIES_TO_FETCH")) {
+			this.createTableRepliesToFetch();
+		}
 	}
-	
+
 	/**
 	 * Getter to retrieve an instance of the class.
 	 * @return The only instance of this singleton class.
@@ -40,10 +43,10 @@ public class StorageManager {
 		if (instance == null) {
 			instance = new StorageManager();
 		}
-		
+
 		return instance;
 	}
-	
+
 	/**
 	 * Get a connection to the datatabase.
 	 * @return A connection
@@ -58,7 +61,7 @@ public class StorageManager {
 		}
 		return DriverManager.getConnection("jdbc:hsqldb:hsql://localhost:9001/flightsdb", "sa", "");
 	}
-	
+
 	/**
 	 * Utility method in order to know if the tables for the application 
 	 * exist.
@@ -79,28 +82,37 @@ public class StorageManager {
 			e.printStackTrace();
 			System.out.println(e.getErrorCode());
 		}
-		
+
 		return false;
 	}
-		
+
 	private void createTableTweets() {
 		try {
 			Connection localConnection = this.getConnection();
 			localConnection.prepareStatement("CREATE TABLE TWEETS (TWEET_ID BIGINT PRIMARY KEY, USERNAME VARCHAR(16), USER_ID BIGINT, TWEET VARCHAR(140), CREATED TIMESTAMP, RETWEET_COUNT BIGINT, IN_REPLY_TO BIGINT)").execute();
-			} catch (SQLException e) {
-				e.printStackTrace();
-			}
-	}
-	
-	private void createTableFetchStatus() {
-		try {
-		Connection localConnection = this.getConnection();
-		localConnection.prepareStatement("CREATE TABLE FETCH_STATUS (USERNAME VARCHAR(16) PRIMARY KEY, LAST_TWEET_ID BIGINT, LAST_TWEET_DATE DATE, COMPLETE BOOLEAN)").execute();
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
 	}
-	
+
+	private void createTableFetchStatus() {
+		try {
+			Connection localConnection = this.getConnection();
+			localConnection.prepareStatement("CREATE TABLE FETCH_STATUS (USERNAME VARCHAR(16) PRIMARY KEY, LAST_TWEET_ID BIGINT, LAST_TWEET_DATE DATE, COMPLETE BOOLEAN)").execute();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
+
+	private void createTableRepliesToFetch() {
+		try {
+			Connection localConnection = this.getConnection();
+			localConnection.prepareStatement("CREATE TABLE REPLIES_TO_FETCH (ID BIGINT PRIMARY KEY, USERNAME VARCHAR(16))").execute();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
+
 	public void removeTweets() {
 		try {
 			Connection localConnection = this.getConnection();
@@ -110,7 +122,7 @@ public class StorageManager {
 			e.printStackTrace();
 		}
 	}
-	
+
 	/**
 	 * Cleans the database.
 	 */
