@@ -20,7 +20,7 @@ public class TweetFetcher implements FetcherCallback {
 	private ArrayList<String> usernamesToFetch;
 	private Timer timer;
 	
-	public static final Long USERNAME_NOT_FETCHED = - 1L;
+	public static final long USERNAME_NOT_FETCHED = - 1L;
 	
 	/**
 	 * Creates an instance of the fetcher with the specified usernames to use for the fetching.

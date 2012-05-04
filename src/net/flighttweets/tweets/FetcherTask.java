@@ -62,11 +62,7 @@ public class FetcherTask extends TimerTask {
 		this.setCallback(callback);
 		this.setRetrialCount(0);
 		
-		FetchItemBundle firstItem = this.getUsernamesToFetch().poll();
-		if (firstItem != null) {
-			this.setCurrentId(firstItem.getTweetId());
-			this.setCurrentUser(firstItem.getUsername());
-		}
+		this.feedFetcher();
 	}
 	
 	public PriorityQueue<FetchItemBundle> getUsernamesToFetch() {
@@ -253,8 +249,10 @@ public class FetcherTask extends TimerTask {
 	}
 	
 	private void markReplyAsFetched(Status fetchedStatus) throws SQLException {
-		PreparedStatement updateStatement = this.getStorageManager().getConnection().prepareStatement("DELETE REPLIES_TO_FETCH WHERE ID = ?");
+		PreparedStatement updateStatement = this.getStorageManager().getConnection().prepareStatement("DELETE FROM REPLIES_TO_FETCH WHERE ID = ?");
 		updateStatement.setLong(1, fetchedStatus.getId());
+		
+		this.feedFetcher();
 	}
 	
 	/**
