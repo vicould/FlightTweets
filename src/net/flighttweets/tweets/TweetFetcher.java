@@ -124,7 +124,11 @@ public class TweetFetcher implements FetcherCallback {
 		Timer timer = new Timer();
 		this.setTimer(timer);
 		FetcherTask task = new FetcherTask(usernames, replies, this);
-		timer.schedule(task, 0, 5000);
+		if (usernames.size() != 0) {
+			timer.schedule(task, 0, 5000);
+		} else {
+			timer.schedule(task, 0, 10);
+		}
 	}
 
 	/**
@@ -147,7 +151,11 @@ public class TweetFetcher implements FetcherCallback {
 		this.getTimer().cancel();
 		this.setTimer(new Timer());
 		FetcherTask task = new FetcherTask(currentPointForUsers, currentPointForReplies, this);
-		this.getTimer().schedule(task, 30000, 5000);
+		if (currentPointForUsers.size() != 0) {
+			timer.schedule(task, 30000, 5000);
+		} else {
+			timer.schedule(task, 30000, 10);
+		}
 	}
 
 }

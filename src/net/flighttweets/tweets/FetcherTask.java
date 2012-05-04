@@ -251,6 +251,7 @@ public class FetcherTask extends TimerTask {
 	private void markReplyAsFetched(Status fetchedStatus) throws SQLException {
 		PreparedStatement updateStatement = this.getStorageManager().getConnection().prepareStatement("DELETE FROM REPLIES_TO_FETCH WHERE ID = ?");
 		updateStatement.setLong(1, fetchedStatus.getId());
+		updateStatement.execute();
 		
 		this.feedFetcher();
 	}
