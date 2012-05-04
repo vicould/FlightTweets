@@ -1,9 +1,14 @@
 package net.flighttweets.tweets;
 
 //import java.io.BufferedWriter;
+import twitter4j.Status;
+import twitter4j.Twitter;
+import twitter4j.TwitterFactory;
+
 import java.util.ArrayList;
 //import java.io.FileWriter;
 import java.sql.Connection;
+import java.sql.Date;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.Statement;
@@ -12,6 +17,18 @@ public class RelevanceChecker{
   
     public static void main(String [] args){
         try{
+        	
+        	/*long statusId = 23137289156689920L;
+        	Twitter twitter = new TwitterFactory().getInstance();
+        	Status status = twitter.showStatus(statusId);
+        	System.out.println(status.getRetweetCount());
+        	System.out.println(status.getCreatedAt());
+        	
+        	long inreplyID=status.getInReplyToStatusId();
+        	System.out.println(inreplyID);
+        	Status status1 = twitter.showStatus(inreplyID);
+        	System.out.println(status1.getCreatedAt());*/
+        	
             ArrayList<String> flightIDs = new ArrayList<String>();
             ArrayList<Integer> tweets1 = new ArrayList<Integer>();
             ArrayList<Integer> tweets2 = new ArrayList<Integer>();
@@ -60,6 +77,16 @@ public class RelevanceChecker{
                   
                     while(result3.next())
                     {
+                    	Twitter twitter = new TwitterFactory().getInstance();
+                    	Status status = twitter.showStatus(twID);
+                    	long rtweet = status.getRetweetCount();
+                    	String query4 = "INSERT INTO TWEETS";
+                    			
+                    	long inreplyID=status.getInReplyToStatusId();
+                    	Status status1 = twitter.showStatus(inreplyID);
+                    	java.util.Date replyDate = status1.getCreatedAt();
+                    	String query5 = "INSERT INTO TWEETS";
+                    	
                         g++;
                                          
                     }
@@ -75,7 +102,7 @@ public class RelevanceChecker{
                 float z = (y/x)*100;
               
                 relevancy.add(i,z);
-                System.out.println(i+" "+relevancy.get(i));
+                //System.out.println(i+" "+relevancy.get(i));
               
               
             }
