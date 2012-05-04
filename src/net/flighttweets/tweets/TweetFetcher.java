@@ -113,7 +113,7 @@ public class TweetFetcher implements FetcherCallback {
 	private void launchFetcherTasks(PriorityQueue<FetchItemBundle> items) {
 		Timer timer = new Timer();
 		this.setTimer(timer);
-		FetcherTask task = new FetcherTask(items, this);
+		FetcherTask task = new FetcherTask(items, new PriorityQueue<FetchItemBundle>(), this);
 		timer.schedule(task, 0, 5000);
 	}
 
@@ -132,10 +132,10 @@ public class TweetFetcher implements FetcherCallback {
 	 * Reschedules the fetching task for later, after a small delay.
 	 */
 	@Override
-	public void handleFetchFailure(PriorityQueue<FetchItemBundle> currentPoint) {
+	public void handleFetchFailure(PriorityQueue<FetchItemBundle> currentPointForUsers, PriorityQueue<FetchItemBundle> currentPointForReplies) {
 		this.getTimer().cancel();
 		this.setTimer(new Timer());
-		FetcherTask task = new FetcherTask(currentPoint, this);
+		FetcherTask task = new FetcherTask(currentPointForUsers, currentPointForReplies, this);
 		this.getTimer().schedule(task, 30000, 5000);
 	}
 
