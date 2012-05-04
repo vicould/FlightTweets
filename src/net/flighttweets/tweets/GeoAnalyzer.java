@@ -13,10 +13,10 @@ public class GeoAnalyzer
        {
     	   	try{
 
-        	   	ArrayList<Integer> event= new ArrayList<Integer>();
+        	ArrayList<Integer> event= new ArrayList<Integer>();
                 ArrayList<String> geographic_location = new ArrayList<String>();
     	   		
-    	   		Connection conn=StorageManager.getInstance().getConnection();
+                Connection conn=StorageManager.getInstance().getConnection();
     	   		
     	   		//fetch rows from the intermediate table kw_tweets
                 PreparedStatement str2=conn.prepareStatement("select * from kw_tweet");
