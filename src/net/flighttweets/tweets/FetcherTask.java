@@ -353,14 +353,25 @@ public class FetcherTask extends TimerTask {
 				}
 			}
 		} catch (TwitterException e) {
-			if (!this.isFromReplies()) {
-			// restores the queue with the username and the id the task was processing before the exception
-			this.getUsernamesToFetch().add(new FetchItemBundle(this.getCurrentUser(), this.getCurrentId()));
+			if (e.getStatusCode() == 403) {
+				// we are not authorized to view this user
+				// let's switch to another one
+				System.out.println(this.getCurrentUser() + " has probably a private account");
+				this.feedFetcher();
+			} else if (e.getStatusCode() == 404) {
+				// status not found
+				System.out.println(this.getCurrentUser() + " has probably deleted this status " + this.getCurrentId());
+				this.feedFetcher();
 			} else {
-				this.getRepliesToFetch().add(new FetchItemBundle(this.getCurrentUser(), this.getCurrentId()));
+				if (!this.isFromReplies()) {
+					// restores the queue with the username and the id the task was processing before the exception
+					this.getUsernamesToFetch().add(new FetchItemBundle(this.getCurrentUser(), this.getCurrentId()));
+				} else {
+					this.getRepliesToFetch().add(new FetchItemBundle(this.getCurrentUser(), this.getCurrentId()));
+				}
+				// forwards the message to the callback
+				this.getCallback().handleFetchFailure(this.getUsernamesToFetch(), this.getRepliesToFetch());
 			}
-			// forwards the message to the callback
-			this.getCallback().handleFetchFailure(this.getUsernamesToFetch(), this.getRepliesToFetch());
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
