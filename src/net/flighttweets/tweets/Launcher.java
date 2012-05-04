@@ -181,9 +181,8 @@ public class Launcher {
 		TweetFilter.populateEventList(events);
 		// filters the keywords
 		TweetFilter filter = new TweetFilter();
-		filter.filterTweets(keywords);
+		//filter.filterTweets(keywords);
 
->>>>>>> ed1775b915b06794cde5327f442fa7762d7f51ab
 		// processes the tweets
 		TimelinessAnalyzer analyze = new TimelinessAnalyzer();
 		try {
