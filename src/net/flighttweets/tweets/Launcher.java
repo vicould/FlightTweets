@@ -189,7 +189,7 @@ public class Launcher {
 			e.printStackTrace();
 		}
 
-		GeoAnalyzer geo = new GeoAnalyzer();
+		geoAnalyzer geo = new geoAnalyzer();
 		geo.geographicalAnalyzer();
 
 		FlightNumberAnalyzer.TweetsWithFlight();
