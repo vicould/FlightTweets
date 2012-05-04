@@ -1,0 +1,2 @@
+#!/bin/bash
+xjc -d src -p net.flighttweets.tweets.jaxb schema/*.xsd

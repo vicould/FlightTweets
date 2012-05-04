@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema elementFormDefault="unqualified"
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+    <xsd:annotation>
+        <xsd:documentation>Pen repetition configuration document.</xsd:documentation>
+    </xsd:annotation>
+    <!-- Imports **************************************************** -->
+    <!-- Global Elements ******************************************** -->
+    <xsd:element name="Repetition" type="repetitionType"/>
+    
+    <!-- Type Definitions ******************************************* -->
+    <xsd:complexType name="repetitionType">
+        <xsd:sequence>
+	    <xsd:element maxOccurs="1" minOccurs="0"
+		name="name" type="xsd:string"/>
+            <xsd:element maxOccurs="1" minOccurs="0"
+                name="title" type="xsd:string"/>
+            <xsd:element maxOccurs="1" minOccurs="0"
+                name="description" type="xsd:string"/>
+            <xsd:element maxOccurs="1" minOccurs="0"
+                name="startDate" type="xsd:string"/>
+            <xsd:element maxOccurs="1" minOccurs="0"
+                name="endDate" type="xsd:string"/>
+	    <xsd:element maxOccurs="1" minOccurs="0"
+		name="curationStatus" type="xsd:string"/>
+	    <xsd:element maxOccurs="1" minOccurs="0" name="createdDate" type="xsd:string"/>
+	    <xsd:element maxOccurs="1" minOccurs="0"
+		name="modifiedDate" type="xsd:string"/>
+	    <xsd:element maxOccurs="1" minOccurs="0" name="creatorId" type="xsd:integer"/>
+	    <xsd:element maxOccurs="1" minOccurs="0" name="modifiedBy" type="xsd:integer"/>
+	    <xsd:element maxOccurs="1" minOccurs="0" name="appId" type="xsd:integer"/>
+	    <xsd:element maxOccurs="1" minOccurs="0" name="DataFile" type="repetitionDataFileType"/>
+        </xsd:sequence>
+	<xsd:attribute name="deleted" type="xsd:boolean"/>
+	<xsd:attribute name="id" type="xsd:integer"/>
+    </xsd:complexType>
+      <xsd:complexType name="repetitionDataFileType">
+	<xsd:attribute name="viewable" type="xsd:string"/>
+	<xsd:attribute name="isDirectory" type="xsd:boolean"/>
+	<xsd:attribute name="isDeleted" type="xsd:boolean"/>
+	<xsd:attribute name="link" type="xsd:string"/>
+	<xsd:attribute name="id" type="xsd:string"/>
+  </xsd:complexType>
+</xsd:schema>

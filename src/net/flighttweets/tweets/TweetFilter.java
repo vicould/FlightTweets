@@ -4,6 +4,7 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.List;
+import net.flighttweets.tweets.jaxb.*;
 
 public class TweetFilter {
 
@@ -12,6 +13,59 @@ public class TweetFilter {
 	 * @param statusesToSave A list of statuses.
 	 */
 
+         public void populateEventKeywordList(int eventId,int keywordId) {
+             String testQuery = "SELECT event_id from EVENT_KEYWORD WHERE event_id=" + eventId + " AND keyword_id=" + keywordId;
+             try {
+                 Connection connection = StorageManager.getInstance().getConnection();
+                 Statement testStmt = connection.createStatement();
+                 ResultSet rst = testStmt.executeQuery(testQuery);
+                 if (rst.next()) {
+                     return;
+                 }
+                 String insertQuery = "INSERT INTO EVENT_KEYWORD (event_id,keyword_id) VALUES (" + eventId + "," + keywordId + ")";
+                 Statement insertStmt = connection.createStatement();
+                 insertStmt.execute(insertQuery);
+             } catch (Exception e) {
+                 e.printStackTrace();
+             }
+         }
+         
+         public static int getEventIdFromName(String name) {
+             int retInt = -1;
+             try {
+             Connection connection = StorageManager.getInstance().getConnection();
+             String query = "SELECT ID FROM EVENTS WHERE NAME='" + name + "'";
+             Statement testStmt = connection.createStatement();
+             ResultSet rsc = testStmt.executeQuery(query);
+                 if (rsc.next()) {
+                     int testInt = rsc.getInt("event_id");
+                     if (testInt > retInt) {
+                         retInt = testInt;
+                     }
+                     
+                 }
+             } catch (Exception e) {
+                 e.printStackTrace();
+             }
+             return retInt;
+         }
+         
+         public static void populateUniqueKeywordEvents(TweetConfigType tcfg) {
+             for (int i = 0; i < tcfg.getEvent().size();i++) {
+                 EventType e = tcfg.getEvent().get(i);
+                 String eventName = e.getEventName();
+                 int eventId = getEventIdFromName(eventName);
+                 if (eventId < 1) {
+                     continue;
+                 }
+                 for (int j = 0; j < e.getKeyword().size();j++) {
+                     int keywordId;
+                     //String
+                 }
+             }
+         }
+    
+    
          public static void populateEventList(List<String> eventList) {
              //event name;start-date;end-date
              int i = 0;
@@ -55,7 +109,7 @@ public class TweetFilter {
              try {
                 Connection connection = StorageManager.getInstance().getConnection();                 
                 for (String word : keywordList) {
-                    
+                    this.populateEventKeywordList(0, i);
                     //do not insert keywords which are already there.
                     String checkQuery = "SELECT keyword_id FROM KEYWORDS WHERE word='" + word + "'";
                     Statement checkStmt = connection.createStatement();
@@ -67,6 +121,7 @@ public class TweetFilter {
                     String query = "INSERT INTO KEYWORDS (keyword_id, word) VALUES (" + i + ",'" + word + "')";
                     Statement insertStmt = connection.createStatement();
                     insertStmt.execute(query);
+
                     i++;
                     insertStmt.close();
                 }

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema elementFormDefault="unqualified"
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+    <xsd:annotation>
+        <xsd:documentation>Configuration File.</xsd:documentation>
+    </xsd:annotation>
+    <!-- Imports **************************************************** -->
+    <!-- Global Elements ******************************************** -->
+    <xsd:element name="TweetConfig" type="tweetConfigType"/>
+    
+    <!-- Type Definitions ******************************************* -->
+    <xsd:complexType name="tweetConfigType">
+        <xsd:sequence>
+            <xsd:element maxOccurs="unbounded" minOccurs="0" name="username" type="xsd:string"/>
+	    <xsd:element maxOccurs="unbounded" minOccurs="0" name="keyword" type="xsd:string"/>
+	    <xsd:element maxOccurs="unbounded" minOccurs="0" name="event" type="EventType"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:complexType name="EventType">
+	<xsd:sequence>
+	    <xsd:element maxOccurs="1" minOccurs="0" name="eventName" type="xsd:string"/>
+	    <xsd:element maxOccurs="1" minOccurs="0" name="startDate" type="xsd:string"/>
+            <xsd:element maxOccurs="1" minOccurs="0" name="endDate" type="xsd:string"/>
+            <xsd:element maxOccurs="unbounded" minOccurs="0" name="keyword" type="xsd:string"/>
+	</xsd:sequence>
+  </xsd:complexType>
+</xsd:schema>
