@@ -7,7 +7,7 @@ import java.io.*;
 
 
 //the code finds the geographic locations affected by the weather events
-public class GeoAnalyzer
+public class geoAnalyzer
 {
        public void geographicalAnalyzer()
        {
