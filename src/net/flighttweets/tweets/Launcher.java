@@ -21,16 +21,18 @@ import java.io.File;
 public class Launcher {
 	public static final int ARGS_ERROR = 1;
 	public static final int FILE_FORMAT_ERROR = 2;
-	
+
 	private static ArrayList<String> usernames;
+	private static ArrayList<String> airlines;
+	private static ArrayList<String> weatherStations;
 	private static ArrayList<String> keywords;
 	private static ArrayList<String> events;
-	
+
 	private static JAXBContext jc = null;
 	private static Marshaller marshaller = null;
 	private static ObjectFactory factory = null;
 	private static Unmarshaller unmarshaller;
-	
+
 	/**
 	 * Method to parse the input, in order to retrieve the usernames and the keywords. 
 	 * @param filename The name of the file containing the input.
@@ -39,8 +41,7 @@ public class Launcher {
 	 * @return True if we parsed everything correctly. False otherwise.
 	 */
 
-
-	public static TweetConfigType readInput (String filename, ArrayList<String> usernames, ArrayList<String> keywords, ArrayList<String>events) {
+	public static TweetConfigType readInput (String filename, ArrayList<String> usernames, ArrayList<String> keywords, ArrayList<String>events, ArrayList<String>airlines, ArrayList<String>weatherStations) {
 		try {
 			jc = JAXBContext.newInstance("net.flighttweets.tweets.jaxb");
 			marshaller = jc.createMarshaller();
@@ -67,6 +68,12 @@ public class Launcher {
 		}
 		for (i = 0; i < returnType.getUsername().size();i++) {
 			usernames.add(returnType.getUsername().get(i));
+		}
+		for (i = 0; i < returnType.getAirline().size();i++) {
+			airlines.add(returnType.getAirline().get(i));
+		}
+		for (i = 0; i < returnType.getWeatherStation().size();i++) {
+			weatherStations.add(returnType.getWeatherStation().get(i));
 		}
 		for (i = 0;i < returnType.getEvent().size();i++) {
 			EventType event = returnType.getEvent().get(i);
@@ -136,11 +143,14 @@ public class Launcher {
 			System.exit(ARGS_ERROR);
 		}
 
+		airlines = new ArrayList<String>();
+		weatherStations = new ArrayList<String>();
 		usernames = new ArrayList<String>();
 		keywords = new ArrayList<String>();
 		events = new ArrayList<String>();
-		
-		TweetConfigType tweetConf = readInput(args[0],usernames,keywords,events);
+
+		TweetConfigType tweetConf = readInput(args[0],usernames,keywords,events,airlines,weatherStations);
+
 		//boolean success = readInputFile(args[0], usernames, keywords,events);
 
 		if (tweetConf == null) {
@@ -154,9 +164,9 @@ public class Launcher {
 		TweetFetcher fetcher = new TweetFetcher(usernames);
 		fetcher.resumeTweetFetching();
 
-		
+
 	}
-	
+
 	/**
 	 * Method to be called by {@link TweetFetcher} when the fetch is complete, as it is asynchronous.
 	 */
