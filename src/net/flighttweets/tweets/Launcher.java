@@ -164,6 +164,12 @@ public class Launcher {
 		TweetFetcher fetcher = new TweetFetcher(usernames);
 		fetcher.resumeTweetFetching();
 
+                //populate event list with any new events.
+                TweetFilter.populateEventList(events);
+
+                //filters the keywords
+		TweetFilter filter = new TweetFilter();
+		filter.filterTweets(keywords,tweetConf);
 
 	}
 
@@ -175,7 +181,7 @@ public class Launcher {
 		TweetFilter.populateEventList(events);
 		// filters the keywords
 		TweetFilter filter = new TweetFilter();
-		filter.filterTweets(keywords);
+		//filter.filterTweets(keywords);
 
 		// processes the tweets
 		TimelinessAnalyzer analyze = new TimelinessAnalyzer();

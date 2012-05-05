@@ -13,7 +13,7 @@ public class TweetFilter {
 	 * @param statusesToSave A list of statuses.
 	 */
 
-         public void populateEventKeywordList(int eventId,int keywordId) {
+         public static void populateEventKeywordList(int eventId,int keywordId) {
              String testQuery = "SELECT event_id from EVENT_KEYWORD WHERE event_id=" + eventId + " AND keyword_id=" + keywordId;
              try {
                  Connection connection = StorageManager.getInstance().getConnection();
@@ -34,11 +34,11 @@ public class TweetFilter {
              int retInt = -1;
              try {
              Connection connection = StorageManager.getInstance().getConnection();
-             String query = "SELECT ID FROM EVENTS WHERE NAME='" + name + "'";
+             String query = "SELECT EVENT_ID FROM EVENTS WHERE EVENT_NAME='" + name + "'";
              Statement testStmt = connection.createStatement();
              ResultSet rsc = testStmt.executeQuery(query);
                  if (rsc.next()) {
-                     int testInt = rsc.getInt("event_id");
+                     int testInt = rsc.getInt("EVENT_ID");
                      if (testInt > retInt) {
                          retInt = testInt;
                      }
@@ -48,6 +48,37 @@ public class TweetFilter {
                  e.printStackTrace();
              }
              return retInt;
+         }
+         
+         public static int getKeywordId(String word) {
+             //returns id of word  If word is not in database, insert word.
+             int returnVal = -1;
+             String checkQuery = "SELECT KEYWORD_ID FROM KEYWORDS WHERE WORD='" + word + "'";
+             try {
+                Connection connection = StorageManager.getInstance().getConnection();
+                Statement testStmt = connection.createStatement();
+                ResultSet rsc = testStmt.executeQuery(checkQuery);
+                if (rsc.next()) {
+                    returnVal = rsc.getInt("KEYWORD_ID");
+                    return returnVal;
+                } else {
+                    String maxQuery = "SELECT MAX(KEYWORD_ID) AS MAXID FROM KEYWORDS";
+                    Statement maxStmt = connection.createStatement();
+                    ResultSet msc = testStmt.executeQuery(maxQuery);
+                    if (msc.next()) {
+                        returnVal = msc.getInt("MAXID") + 1;
+                    } else {
+                        returnVal = 0;
+                    }
+                    String insertQuery = "INSERT INTO KEYWORDS (KEYWORD_ID,WORD) VALUES (" + returnVal + ",'" + word + "')";
+                    Statement insertStmt = connection.createStatement();
+                    testStmt.execute(insertQuery);
+                    return returnVal;
+                }
+             } catch (Exception e) {
+                 e.printStackTrace();
+             }
+             return returnVal;
          }
          
          public static void populateUniqueKeywordEvents(TweetConfigType tcfg) {
@@ -60,7 +91,10 @@ public class TweetFilter {
                  }
                  for (int j = 0; j < e.getKeyword().size();j++) {
                      int keywordId;
-                     //String
+                     String keyword = e.getKeyword().get(j);
+                     keywordId = getKeywordId(keyword);
+                     populateEventKeywordList(eventId,keywordId);
+                     
                  }
              }
          }
@@ -130,11 +164,12 @@ public class TweetFilter {
                  e.printStackTrace();
              }
          }
-	public void filterTweets(List<String> keywordList) {
+	public void filterTweets(List<String> keywordList,TweetConfigType tct) {
             this.populateKeywordList(keywordList);
+            TweetFilter.populateUniqueKeywordEvents(tct);
 		try {
                     Connection connection = StorageManager.getInstance().getConnection();
-                   
+                   //global tweets
                         for (String string : keywordList) {
                         //get keyword id
                             String keywordQuery = "SELECT keyword_id FROM KEYWORDS WHERE WORD = '" + string + "'";
@@ -166,6 +201,35 @@ public class TweetFilter {
                             }
                             fetchStatement.close();
                         }    
+                        //local tweets
+                        //get all event and keyword pairs with keyword_id and event_id in EVENT_KEYWORDS
+                        String uniqueTweetQuery = "SELECT EVENTS.EVENT_ID,KEYWORDS.KEYWORD_ID,KEYWORDS.WORD FROM EVENT_KEYWORD LEFT JOIN KEYWORDS ON (EVENT_KEYWORD.KEYWORD_ID = KEYWORDS.KEYWORD_ID) LEFT JOIN EVENTS ON (EVENT_KEYWORD.EVENT_ID = EVENTS.EVENT_ID) WHERE EVENT_KEYWORD.EVENT_ID > 0";
+                        Statement utStmt = connection.createStatement();
+                        ResultSet utSet = utStmt.executeQuery(uniqueTweetQuery);
+                        while (utSet.next()) {
+                            long event_id = utSet.getLong("EVENTS.EVENT_ID");
+                            long kw_id = utSet.getLong("KEYWORDS.KEYWORD_ID");
+                            String word = utSet.getString("KEYWORDS.WORD");
+                            String likeClause = "TWEETS.TWEET LIKE '%" + word + "%' AND TWEETS.CREATED > EVENTS.START_DATE AND TWEETS.CREATED < EVENTS.END_DATE AND EVENTS.EVENT_ID=" + event_id;
+                            String retrieveQuery = "SELECT TWEETS.TWEET_ID,EVENTS.EVENT_ID FROM TWEETS FULL JOIN EVENTS ON 1=1 WHERE " + likeClause;
+                            //System.out.println(retrieveQuery);
+                            Statement fetchStatement = connection.createStatement();
+                            ResultSet rs2 = fetchStatement.executeQuery(retrieveQuery);
+                            while (rs2.next()) {
+                                long tweet_id = rs2.getLong("TWEETS.TWEET_ID");
+                                String checkQuery = "SELECT * FROM KW_TWEET WHERE TWEET_ID=" + tweet_id + " AND KEYWORD_ID=" + kw_id + " AND EVENT_ID=" + event_id;
+                                Statement checkStatement = connection.createStatement();
+                                ResultSet crs = checkStatement.executeQuery(checkQuery);
+                                if (crs.next()) {
+                                    continue;
+                                }
+                                String insertQuery = "INSERT INTO KW_TWEET (TWEET_ID,KEYWORD_ID,EVENT_ID) VALUES (" + tweet_id + "," + kw_id + "," + event_id + ")";
+                                Statement insertStatement = connection.createStatement();
+                                insertStatement.execute(insertQuery);
+                                insertStatement.close();
+                            }
+                            fetchStatement.close();
+                        }
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
