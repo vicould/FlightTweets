@@ -118,7 +118,8 @@ public class TweetFetcher implements FetcherCallback {
 	
 	/**
 	 * Configure a timer to fetch tweets for the specified usernames. 
-	 * @param usernames A priority queue of {@link FetchItemBundle} configuring what to fetch.
+	 * @param usernames A priority queue of {@link FetchItemBundle} configuring which usernames to fetch.
+	 * @param replies A priority queue of {@link FetchItemBundle} configuring which single statuses to fetch.
 	 */
 	private void launchFetcherTasks(PriorityQueue<FetchItemBundle> usernames, PriorityQueue<FetchItemBundle> replies) {
 		Timer timer = new Timer();

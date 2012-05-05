@@ -50,6 +50,8 @@ public class FetcherTask extends TimerTask {
 	 * of the task.
 	 * @param usersToFetch A sorted queue containing the elements to fetch, as instances of
 	 * {@link FetchItemBundle}. 
+	 * @param repliesToFetch A sorted queue containing the usernames to fetch, as instances of
+	 * {@link FetchItemBundle}
 	 * @param callback The instance of the class to use when message passing is needed. 
 	 */
 	public FetcherTask(PriorityQueue<FetchItemBundle> usersToFetch, PriorityQueue<FetchItemBundle> repliesToFetch, FetcherCallback callback) {
@@ -142,8 +144,8 @@ public class FetcherTask extends TimerTask {
 	}
 	
 	/**
-	 * 
-	 * @param statuses
+	 * Adds the ids of the tweets mentioned in the list of statuses passed as arguments to the replies fetching queue.
+	 * @param statuses The statuses to analyze.
 	 * @throws SQLException 
 	 */
 	private void populateRepliesQueue(List<Status> statuses) throws SQLException {
@@ -189,6 +191,11 @@ public class FetcherTask extends TimerTask {
 		return new ArrayList<Status>();
 	}
 	
+	/**
+	 * Fetches a single tweet from the Twitter API, picked from the current id.
+	 * @return The associated id
+	 * @throws TwitterException if the status does not exist, is protected, etc.
+	 */
 	private Status getTweet() throws TwitterException {
 		if (this.getCurrentUser() != null || this.getCurrentId() != null) {
 			Twitter twitter= new TwitterFactory().getInstance();
@@ -206,6 +213,10 @@ public class FetcherTask extends TimerTask {
 		saver.saveTweets(statuses);
 	}
 	
+	/**
+	 * Save a single tweet to the db.
+	 * @param status The status to save.
+	 */
 	private void saveTweet(Status status) {
 		TweetSaver saver = this.getTweetSaver();
 		saver.saveTweet(status);
@@ -234,6 +245,11 @@ public class FetcherTask extends TimerTask {
 		}
 	}
 	
+	/**
+	 * Update the table storing the replies to fetch from twitter.
+	 * @param replies The replies to analyze. It is a set, to limit the duplicates before saving in the db.
+	 * @throws SQLException
+	 */
 	private void setRepliesToFetch(Set<FetchItemBundle> replies) throws SQLException {
 		PreparedStatement insertStatement = this.getStorageManager().getConnection().prepareStatement("INSERT INTO REPLIES_TO_FETCH VALUES (?, ?)");
 		try {
@@ -248,6 +264,11 @@ public class FetcherTask extends TimerTask {
 		}
 	}
 	
+	/**
+	 * Deletes one entry from the replies statuses in the database
+	 * @param fetchedStatus The fetched reply to remove from the list of replies to fetch.
+	 * @throws SQLException
+	 */
 	private void markReplyAsFetched(Status fetchedStatus) throws SQLException {
 		PreparedStatement updateStatement = this.getStorageManager().getConnection().prepareStatement("DELETE FROM REPLIES_TO_FETCH WHERE ID = ?");
 		updateStatement.setLong(1, fetchedStatus.getId());
